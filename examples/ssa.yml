@@ -1,0 +1,36 @@
+---
+# Example server definition file for secureserveraccess package.
+
+servers:
+
+  myserver1:
+    description: "my dev system 1"
+    contact_name: "John Doe"
+    access_via: "VPN to dev network"
+    user_defined:
+      host: "10.11.12.13"
+      username: myusername
+      password: mypassword
+      stuff:
+        - morestuff1
+
+  myserver2:
+    description: "my dev system 2"
+    contact_name: "John Doe"
+    access_via: "intranet"
+    user_defined:
+      host: "9.11.12.13"
+      username: myusername
+      password: mypassword
+      stuff:
+        - morestuff2
+
+server_groups:
+
+  mygroup1:
+    description: "my dev systems"
+    members:
+      - myserver1
+      - myserver2
+
+default: mygroup1

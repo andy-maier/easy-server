@@ -1,0 +1,35 @@
+# Example GitHub Actions workflow file for approach 2
+
+name: test
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ "ubuntu-latest" ]
+        python-version: [ "2.7", "3.9" ]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install the package and its dependents
+      run: |
+        pip install -r requirements.txt
+    - name: Open the vault
+      uses: anthonykgross/ansible-vault-cli-github-action@v1
+      with:
+        vault_key: ${{ secrets.vault_key }}
+        command: "ansible-vault decrypt vault.yaml"
+    - name: Run test
+      run: |
+        pytest mypackage
