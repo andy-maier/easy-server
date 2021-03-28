@@ -1,4 +1,4 @@
-# Pip minimum constraints file for of secureserveraccess project.
+# Pip minimum constraints file for of secure-server-access project.
 #
 # This file specifies constraints that define the minimum versions of any
 # direct and indirect dependent packages for installation and development of

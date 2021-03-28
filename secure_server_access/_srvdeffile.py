@@ -156,7 +156,7 @@ class ServerDefinitionFile(object):
           nickname (:term:`unicode string`): Server nickname.
 
         Returns:
-          :class:`~secureserveraccess.ServerDefinition`:
+          :class:`~secure_server_access.ServerDefinition`:
              Server definition with the specified nickname.
 
         Raises:
@@ -181,7 +181,7 @@ class ServerDefinitionFile(object):
           nickname (:term:`unicode string`): Server or server group nickname.
 
         Returns:
-          list of :class:`~secureserveraccess.ServerDefinition`:
+          list of :class:`~secure_server_access.ServerDefinition`:
           List of server definitions.
 
         Raises:
@@ -215,7 +215,7 @@ class ServerDefinitionFile(object):
         an empty list.
 
         Returns:
-          list of :class:`~secureserveraccess.ServerDefinition`:
+          list of :class:`~secure_server_access.ServerDefinition`:
           List of server definitions.
         """
         if self._default is None:
@@ -227,7 +227,7 @@ class ServerDefinitionFile(object):
         List all server definitions.
 
         Returns:
-          list of :class:`~secureserveraccess.ServerDefinition`:
+          list of :class:`~secure_server_access.ServerDefinition`:
           List of server definitions.
         """
         return [self.get_server(nickname) for nickname in self._servers]

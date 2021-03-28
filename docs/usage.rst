@@ -22,7 +22,7 @@ Usage
 Ansible vault file
 ------------------
 
-The `Ansible vault file`_ used by the **secureserveraccess** library is in YAML
+The `Ansible vault file`_ used by the **secure-server-access** library is in YAML
 format and defines the secrets for accessing each server.
 
 The servers are identified with user-defined nicknames, and the data structure
@@ -59,9 +59,9 @@ that is part of `Ansible`_. Ansible can be installed for example as the
 ``ansible`` package from Pypi.
 
 The vault file can be encrypted or in clear text when the
-**secureserveraccess** library functions accessing it are called.
+**secure-server-access** library functions accessing it are called.
 If it is encrypted, its vault password must be provided by the caller.
-See :class:`secureserveraccess.VaultFile` for details.
+See :class:`secure_server_access.VaultFile` for details.
 
 Python programs for direct human use (e.g. command line utilities) can prompt
 for the vault password and store it in the keyring facility of the local system
@@ -87,7 +87,7 @@ keyring facility of the local system for future use, using the
 
     import getpass
     import keyring
-    from secureserveraccess import Vault, NotFound
+    from secure_server_access import Vault, NotFound
 
     vault_file = 'vault.yml'        # Path name of Ansible vault file
     server_nick = 'myserver1'       # Nickname of server in Ansible vault file
@@ -189,8 +189,8 @@ In the example above, ``myserver1``, ``myserver2``, and ``mygroup1`` are
 nicknames of the respective server or server group definitions. These nicknames
 are used when servers or groups are put into a server group in that file, or
 when they are specified as a default in that file, or when they are used
-in functions of the **secureserveraccess** library.
-See :class:`secureserveraccess.ServerDefinitionFile` for details.
+in functions of the **secure-server-access** library.
+See :class:`secure_server_access.ServerDefinitionFile` for details.
 
 These nicknames are case sensitive and their allowable character set are
 alphenumeric characters and the underscore character.

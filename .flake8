@@ -1,4 +1,4 @@
-# Flake8 config file for secureserveraccess project.
+# Flake8 config file for secure-server-access project.
 
 [flake8]
 max_line_length = 80

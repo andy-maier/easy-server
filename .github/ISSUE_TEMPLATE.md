@@ -6,6 +6,6 @@
 
 ### Execution environment
 
-* secureserveraccess version:
+* secure-server-access version:
 * Python version:
 * Operating System (type+version):

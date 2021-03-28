@@ -11,16 +11,16 @@
 .. limitations under the License.
 
 
-secureserveraccess - Secure Server Access
+secure-server-access - Secure Server Access
 *****************************************
 
-The **secureserveraccess** Python package is a library for retrieving the
+The **secure-server-access** Python package is a library for retrieving the
 secrets needed for accessing servers or services from an encrypted
 `Ansible vault file`_ in YAML format.
 
 The servers are identified with user-defined nicknames and the data structure
 of the secrets for each server is completely user-defined. The password for the
-Ansible vault file must be provided by the caller of the **secureserveraccess**
+Ansible vault file must be provided by the caller of the **secure-server-access**
 library. The documentation describes approaches for how the vault password can
 be stored securely in CI systems and in keyring facilities.
 

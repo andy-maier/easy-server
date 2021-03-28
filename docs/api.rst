@@ -16,7 +16,7 @@
 API Reference
 =============
 
-This section describes the API of the **secureserveraccess** package.
+This section describes the API of the **secure-server-access** package.
 
 
 .. _`VaultFile class`:
@@ -24,7 +24,7 @@ This section describes the API of the **secureserveraccess** package.
 VaultFile class
 ---------------
 
-.. autoclass:: secureserveraccess.VaultFile
+.. autoclass:: secure_server_access.VaultFile
     :members:
     :autosummary:
     :autosummary-inherited-members:
@@ -36,7 +36,7 @@ VaultFile class
 ServerDefinitionFile class
 --------------------------
 
-.. autoclass:: secureserveraccess.ServerDefinitionFile
+.. autoclass:: secure_server_access.ServerDefinitionFile
     :members:
     :autosummary:
     :autosummary-inherited-members:
@@ -48,7 +48,7 @@ ServerDefinitionFile class
 ServerDefinition class
 ----------------------
 
-.. autoclass:: secureserveraccess.ServerDefinition
+.. autoclass:: secure_server_access.ServerDefinition
     :members:
     :autosummary:
     :autosummary-inherited-members:
@@ -60,31 +60,31 @@ ServerDefinition class
 Exception classes
 -----------------
 
-.. autoclass:: secureserveraccess.VaultFileException
+.. autoclass:: secure_server_access.VaultFileException
     :members:
     :special-members: __str__
 
-.. autoclass:: secureserveraccess.VaultFileOpenError
+.. autoclass:: secure_server_access.VaultFileOpenError
     :members:
     :special-members: __str__
 
-.. autoclass:: secureserveraccess.VaultFileDecryptError
+.. autoclass:: secure_server_access.VaultFileDecryptError
     :members:
     :special-members: __str__
 
-.. autoclass:: secureserveraccess.VaultFileFormatError
+.. autoclass:: secure_server_access.VaultFileFormatError
     :members:
     :special-members: __str__
 
-.. autoclass:: secureserveraccess.ServerDefinitionFileException
+.. autoclass:: secure_server_access.ServerDefinitionFileException
     :members:
     :special-members: __str__
 
-.. autoclass:: secureserveraccess.ServerDefinitionFileOpenError
+.. autoclass:: secure_server_access.ServerDefinitionFileOpenError
     :members:
     :special-members: __str__
 
-.. autoclass:: secureserveraccess.ServerDefinitionFileFormatError
+.. autoclass:: secure_server_access.ServerDefinitionFileFormatError
     :members:
     :special-members: __str__
 
@@ -95,9 +95,9 @@ Package version
 ---------------
 
 The package version can be accessed by programs using the
-``secureserveraccess.__version__`` variable [#]_:
+``secure_server_access.__version__`` variable [#]_:
 
-.. autodata:: secureserveraccess._version.__version__
+.. autodata:: secure_server_access._version.__version__
 
 This documentation may have been built from a development level of the
 package. You can recognize a development version of this package by the
@@ -108,5 +108,5 @@ released after 0.1.1. Version 1.1.2 is an `assumed` next version, because the
 `actually released` next version might be 0.2.0 or even 1.0.0.
 
 .. [#] For tooling reasons, that variable is shown as
-   ``secureserveraccess._version.__version__`` in this documentation, but
-   it should be accessed as ``secureserveraccess.__version__``.
+   ``secure_server_access._version.__version__`` in this documentation, but
+   it should be accessed as ``secure_server_access.__version__``.
