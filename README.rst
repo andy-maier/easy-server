@@ -1,33 +1,33 @@
-secureserveraccess - Secure Server Access
+secure-server-access - Secure Server Access
 =========================================
 
-.. image:: https://badge.fury.io/py/secureserveraccess.svg
-    :target: https://pypi.python.org/pypi/secureserveraccess/
+.. image:: https://badge.fury.io/py/secure-server-access.svg
+    :target: https://pypi.python.org/pypi/secure-server-access/
     :alt: Version on Pypi
 
-.. image:: https://github.com/andy-maier/secureserveraccess/workflows/test/badge.svg?branch=master
-    :target: https://github.com/andy-maier/secureserveraccess/actions/
+.. image:: https://github.com/andy-maier/secure-server-access/workflows/test/badge.svg?branch=master
+    :target: https://github.com/andy-maier/secure-server-access/actions/
     :alt: Actions status
 
-.. image:: https://readthedocs.org/projects/secureserveraccess/badge/?version=latest
-    :target: https://readthedocs.org/projects/secureserveraccess/builds/
+.. image:: https://readthedocs.org/projects/secure-server-access/badge/?version=latest
+    :target: https://readthedocs.org/projects/secure-server-access/builds/
     :alt: Docs build status (master)
 
-.. image:: https://coveralls.io/repos/github/andy-maier/secureserveraccess/badge.svg?branch=master
-    :target: https://coveralls.io/github/andy-maier/secureserveraccess?branch=master
+.. image:: https://coveralls.io/repos/github/andy-maier/secure-server-access/badge.svg?branch=master
+    :target: https://coveralls.io/github/andy-maier/secure-server-access?branch=master
     :alt: Test coverage (master)
 
 
 Overview
 --------
 
-The **secureserveraccess** Python package is a library for retrieving the
+The **secure-server-access** Python package is a library for retrieving the
 secrets needed for accessing servers or services from an encrypted
 `Ansible vault file`_ in YAML format.
 
 The servers are identified with user-defined nicknames and the data structure
 of the secrets for each server is completely user-defined. The password for the
-Ansible vault file must be provided by the caller of the **secureserveraccess**
+Ansible vault file must be provided by the caller of the **secure-server-access**
 library. The documentation describes approaches for how the vault password can
 be stored securely in CI systems and in keyring facilities.
 
@@ -48,7 +48,7 @@ accessed for example to run automated tests against each server in the group.
 Supported environments
 ----------------------
 
-The **secureserveraccess** package is supported in these environments:
+The **secure-server-access** package is supported in these environments:
 
 * Operating Systems: Linux, Windows (native, and with UNIX-like environments),
   macOS/OS-X
@@ -61,12 +61,12 @@ The **secureserveraccess** package is supported in these environments:
 Installation
 ------------
 
-The following command installs the **secureserveraccess** package and its
+The following command installs the **secure-server-access** package and its
 prerequisite packages into the active Python environment:
 
 .. code-block:: bash
 
-    $ pip install secureserveraccess
+    $ pip install secure-server-access
 
 
 .. _`Documentation and change log`:
@@ -81,12 +81,12 @@ Documentation and change log
 License
 -------
 
-The **secureserveraccess** project is provided under the
-`Apache Software License 2.0 <https://raw.githubusercontent.com/andy-maier/secureserveraccess/master/LICENSE>`_.
+The **secure-server-access** project is provided under the
+`Apache Software License 2.0 <https://raw.githubusercontent.com/andy-maier/secure-server-access/master/LICENSE>`_.
 
 
 .. # Links:
 
 .. _`Ansible vault file`: https://docs.ansible.com/ansible/latest/user_guide/vault.html
-.. _`Documentation`: https://secureserveraccess.readthedocs.io/en/latest/
-.. _`Change log`: https://secureserveraccess.readthedocs.io/en/latest/changes.html
+.. _`Documentation`: https://secure-server-access.readthedocs.io/en/latest/
+.. _`Change log`: https://secure-server-access.readthedocs.io/en/latest/changes.html

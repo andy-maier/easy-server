@@ -16,7 +16,7 @@
 Development
 ===========
 
-This section only needs to be read by developers of the **secureserveraccess**
+This section only needs to be read by developers of the **secure-server-access**
 project, including people who want to make a fix or want to test the project.
 
 
@@ -25,9 +25,9 @@ project, including people who want to make a fix or want to test the project.
 Repository
 ----------
 
-The repository for the **secureserveraccess** project is on GitHub:
+The repository for the **secure-server-access** project is on GitHub:
 
-https://github.com/andy-maier/secureserveraccess
+https://github.com/andy-maier/secure-server-access
 
 
 .. _`Setting up the development environment`:
@@ -40,8 +40,8 @@ Setting up the development environment
 
    .. code-block:: bash
 
-        $ git clone git@github.com:andy-maier/secureserveraccess.git
-        $ cd secureserveraccess
+        $ git clone git@github.com:andy-maier/secure-server-access.git
+        $ cd secure-server-access
 
    If you do not have write access, create a fork on GitHub and clone the
    fork in the way shown above.
@@ -76,7 +76,7 @@ Building the documentation
 --------------------------
 
 The ReadTheDocs (RTD) site is used to publish the documentation for the
-project package at https://secureserveraccess.readthedocs.io/
+project package at https://secure-server-access.readthedocs.io/
 
 This page is automatically updated whenever the Git repo for this package
 changes the branch from which this documentation is built.
@@ -101,7 +101,7 @@ Testing
 
 All of the following `make` commands run the tests in the currently active
 Python environment.
-Depending on how the `secureserveraccess` package is installed in
+Depending on how the `secure-server-access` package is installed in
 that Python environment, either the directories in the main repository
 directory are used, or the installed package.
 The test case files and any utility functions they use are always used from
@@ -207,7 +207,7 @@ Further rules:
 Releasing a version to PyPI
 ---------------------------
 
-This section describes how to release a version of **secureserveraccess**
+This section describes how to release a version of **secure-server-access**
 to PyPI.
 
 It covers all variants of versions that can be released:
@@ -217,12 +217,12 @@ It covers all variants of versions that can be released:
 * Releasing a new update version (M.N.Unew) based on the stable branch of its
   minor version
 
-The description assumes that the `andy-maier/secureserveraccess`
+The description assumes that the `andy-maier/secure-server-access`
 Github repo is cloned locally and its upstream repo is assumed to have the Git
 remote name `origin`.
 
 Any commands in the following steps are executed in the main directory of your
-local clone of the `andy-maier/secureserveraccess`
+local clone of the `andy-maier/secure-server-access`
 Git repo.
 
 1.  Set shell variables for the version that is being released and the branch
@@ -272,7 +272,7 @@ Git repo.
 
     .. code-block:: sh
 
-        vi secureserveraccess/_version.py
+        vi secure_server_access/_version.py
 
     and set the ``__version__`` variable to the version that is being released:
 
@@ -368,14 +368,14 @@ Git repo.
 
 13. On ReadTheDocs, activate the new version ``M.N.U``:
 
-    * Go to https://readthedocs.org/projects/secureserveraccess/versions/
+    * Go to https://readthedocs.org/projects/secure-server-access/versions/
       and log in.
 
     * Activate the new version ``M.N.U``.
 
       This triggers a build of that version. Verify that the build succeeds
       and that new version is shown in the version selection popup at
-      https://secureserveraccess.readthedocs.io/
+      https://secure-server-access.readthedocs.io/
 
 14. Upload the package to PyPI:
 
@@ -389,14 +389,14 @@ Git repo.
     the same version twice to PyPI.
 
     Verify that the released version arrived on PyPI at
-    https://pypi.python.org/pypi/secureserveraccess/
+    https://pypi.python.org/pypi/secure-server-access/
 
 
 Starting a new version
 ----------------------
 
 This section shows the steps for starting development of a new version of the
-secureserveraccess project in its Git repo.
+secure-server-access project in its Git repo.
 
 This section covers all variants of new versions:
 
@@ -405,12 +405,12 @@ This section covers all variants of new versions:
 * Starting a new update version (M.N.Unew) based on the stable branch of its
   minor version
 
-The description assumes that the `andy-maier/secureserveraccess`
+The description assumes that the `andy-maier/secure-server-access`
 Github repo is cloned locally and its upstream repo is assumed to have the Git
 remote name `origin`.
 
 Any commands in the following steps are executed in the main directory of your
-local clone of the `andy-maier/secureserveraccess`
+local clone of the `andy-maier/secure-server-access`
 Git repo.
 
 1.  Set shell variables for the version that is being started and the branch it
@@ -460,7 +460,7 @@ Git repo.
 
     .. code-block:: sh
 
-        vi secureserveraccess/_version.py
+        vi secure_server_access/_version.py
 
     and update the version to a draft version of the version that is being
     started:
@@ -500,7 +500,7 @@ Git repo.
 
         * See `list of open issues`_.
 
-        .. _`list of open issues`: https://github.com/andy-maier/secureserveraccess/issues
+        .. _`list of open issues`: https://github.com/andy-maier/secure-server-access/issues
 
 5.  Commit your changes and push them to the remote repo:
 

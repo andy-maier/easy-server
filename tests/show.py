@@ -6,7 +6,7 @@ Test script that shows the content of a vault file.
 import sys
 import getpass
 import keyring
-from secureserveraccess import VaultFile, VaultFileException
+from secure_server_access import VaultFile, VaultFileException
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
     except IndexError:
         password = None
 
-    keyring_service = 'secureserveraccess.show'    # unique within keyring
+    keyring_service = 'secure_server_access.show'    # unique within keyring
     keyring_username = 'vault'
 
     if password is None:

@@ -11,14 +11,15 @@
 # limitations under the License.
 
 """
-Version of the secureserveraccess package.
+secure-server-access - Secure Server Access
 """
 
-#: The full version of this package including any development levels, as a
-#: :term:`string`.
-#:
-#: Possible formats for this version string are:
-#:
-#: * "M.N.P.dev1": Development level 1 of a not yet released version M.N.P
-#: * "M.N.P": A released version M.N.P
-__version__ = '0.6.0.dev1'
+# There are submodules, but users shouldn't need to know about them.
+# Importing just this module is enough.
+
+from __future__ import absolute_import, print_function
+from ._version import __version__  # noqa: F401
+from ._exceptions import *  # noqa: F403,F401
+from ._vaultfile import *  # noqa: F403,F401
+from ._srvdef import *  # noqa: F403,F401
+from ._srvdeffile import *  # noqa: F403,F401

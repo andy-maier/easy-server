@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Python setup script for the secureserveraccess project.
+Python setup script for the secure-server-access project.
 """
 
 import os
@@ -71,7 +71,7 @@ dependency_links = [req for req in requirements
                     if req and re.match(r'[^:]+://', req)]
 
 package_version = get_version(
-    os.path.join('secureserveraccess', '_version.py'))
+    os.path.join('secure_server_access', '_version.py'))
 
 # Docs on setup():
 # * https://docs.python.org/2.7/distutils/apiref.html?
@@ -79,10 +79,10 @@ package_version = get_version(
 # * https://setuptools.readthedocs.io/en/latest/setuptools.html#
 #   new-and-changed-setup-keywords
 setuptools.setup(
-    name='secureserveraccess',
+    name='secure-server-access',
     version=package_version,
     packages=[
-        'secureserveraccess',
+        'secure_server_access',
     ],
     include_package_data=True,  # Includes MANIFEST.in files into sdist (only)
     scripts=[],
@@ -96,23 +96,23 @@ setuptools.setup(
     author_email='andreas.r.maier@gmx.de',
     maintainer="Andreas Maier",
     maintainer_email='andreas.r.maier@gmx.de',
-    url='https://github.com/andy-maier/secureserveraccess',
+    url='https://github.com/andy-maier/secure-server-access',
     project_urls={
         'Bug Tracker':
-        'https://github.com/andy-maier/secureserveraccess/issues',
+        'https://github.com/andy-maier/secure-server-access/issues',
         'Documentation':
-        'https://secureserveraccess.readthedocs.io/en/latest/',
+        'https://secure-server-access.readthedocs.io/en/latest/',
         'Change Log':
-        'https://secureserveraccess.readthedocs.io/en/latest/changes.html',
+        'https://secure-server-access.readthedocs.io/en/latest/changes.html',
         'Source Code':
-        'https://github.com/andy-maier/secureserveraccess',
+        'https://github.com/andy-maier/secure-server-access',
     },
 
     options={'bdist_wheel': {'universal': True}},
     zip_safe=True,  # This package can safely be installed from a zip file
     platforms='any',
 
-    # Keep these Python versions in sync with secureserveraccess/__init__.py
+    # Keep these Python versions in sync with secure_server_access/__init__.py
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

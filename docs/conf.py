@@ -11,7 +11,7 @@
 # limitations under the License.
 
 """
-Sphinx config file for secureserveraccess project.
+Sphinx config file for secure-server-access project.
 
 This file is execfile()d with the current directory set to its
 containing dir.
@@ -101,7 +101,7 @@ else:
     master_doc = 'docs/index'
 
 # General information about the project.
-project = u'secureserveraccess'
+project = u'secure-server-access'
 #copyright = u''
 author = u"Andreas Maier"
 
@@ -114,7 +114,7 @@ _short_description = u"Pytest plugin for Secure Server Access"
 
 # The short X.Y version.
 # Note: We use the full version in both cases (e.g. 'M.N.U' or 'M.N.U.dev0').
-version = get_version(os.path.join('..', 'secureserveraccess', '_version.py'))
+version = get_version(os.path.join('..', 'secure_server_access', '_version.py'))
 
 # The full version, including alpha/beta/rc tags.
 release = version
@@ -318,7 +318,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'secureserveraccess_doc'
+htmlhelp_basename = 'secure_server_access_doc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -340,7 +340,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'secureserveraccess.tex', _short_description, author, 'manual'),
+    (master_doc, 'secure_server_access.tex', _short_description, author, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -369,7 +369,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'secureserveraccess', _short_description, [author], 1)
+    (master_doc, 'secure_server_access', _short_description, [author], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -382,8 +382,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'secureserveraccess', _short_description,
-     author, 'secureserveraccess', _short_description,
+    (master_doc, 'secure_server_access', _short_description,
+     author, 'secure_server_access', _short_description,
      'Miscellaneous'),
 ]
 

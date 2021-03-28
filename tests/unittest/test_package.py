@@ -22,8 +22,8 @@ def test_import():
     Test import of the package.
     """
     # pylint: disable=import-outside-toplevel
-    import secureserveraccess  # noqa: F401
-    assert secureserveraccess
+    import secure_server_access  # noqa: F401
+    assert secure_server_access
 
 
 def test_versioning():
@@ -31,5 +31,5 @@ def test_versioning():
     Test import of the package.
     """
     # pylint: disable=import-outside-toplevel
-    import secureserveraccess  # noqa: F401
-    assert secureserveraccess.__version__
+    import secure_server_access  # noqa: F401
+    assert secure_server_access.__version__
