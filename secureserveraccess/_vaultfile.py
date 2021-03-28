@@ -35,7 +35,7 @@ __all__ = ['VaultFile']
 VAULT_FILE_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "JSON schema for Ansible vault files used by the "
-    "secureserveraccess package",
+             "secureserveraccess package",
     "definitions": {},
     "type": "object",
     "required": [
