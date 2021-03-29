@@ -12,13 +12,10 @@
 
 """
 Version of the easy-server package.
+
+This module must be exec-able standalone, without depending on any other
+packages or on importability of the other modules of this package.
 """
 
-#: The full version of this package including any development levels, as a
-#: :term:`string`.
-#:
-#: Possible formats for this version string are:
-#:
-#: * "M.N.P.dev1": Development level 1 of a not yet released version M.N.P
-#: * "M.N.P": A released version M.N.P
-__version__ = '0.6.0.dev1'
+# For a escription, see __init__.py.
+__version__ = '0.5.0.dev1'
