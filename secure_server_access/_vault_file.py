@@ -11,22 +11,15 @@
 # limitations under the License.
 
 """
-Encapsulation of Ansible vault files.
+Encapsulation of vault files.
 """
 
 from __future__ import absolute_import, print_function
 from copy import deepcopy
-import yaml
 import jsonschema
-from ansible.parsing.vault import VaultLib, VaultSecret, is_encrypted
-# For some strange reason, Pylint does not detect the constant:
-# pylint: disable=no-name-in-module
-from ansible.constants import DEFAULT_VAULT_ID_MATCH
-# pylint: enable=no-name-in-module
-from ansible.errors import AnsibleError
+import easy_vault
 
-from ._exceptions import VaultFileOpenError, VaultFileDecryptError, \
-    VaultFileFormatError
+from ._exceptions import VaultFileFormatError
 
 __all__ = ['VaultFile']
 
@@ -34,7 +27,7 @@ __all__ = ['VaultFile']
 # JSON schema describing the structure of the vault files
 VAULT_FILE_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "JSON schema for Ansible vault files used by the "
+    "title": "JSON schema for vault files used by the "
              "secure-server-access package",
     "definitions": {},
     "type": "object",
@@ -61,11 +54,11 @@ VAULT_FILE_SCHEMA = {
 
 class VaultFile(object):
     """
-    Encapsulates an Ansible vault file used by the secure-server-access package.
+    Encapsulates a vault file used by the secure-server-access package.
 
-    For a description of the file format, see :ref:`Ansible vault file`.
+    For a description of the file format, see :ref:`Format of vault files`.
 
-    The Ansible vault file may be in clear text form (i.e. unencrypted) or
+    The vault file may be in clear text form (i.e. unencrypted) or
     encrypted. The file remains unchanged in all cases, and only the data read
     from it is decrypted upon use if it was encrypted.
     """
@@ -75,7 +68,7 @@ class VaultFile(object):
         Parameters:
 
           filepath (:term:`unicode string`):
-            Path name of Ansible vault file.
+            Path name of vault file.
 
           password (:term:`unicode string`):
             Password for decrypting the vault file. If not provided, the vault
@@ -87,10 +80,10 @@ class VaultFile(object):
           VaultFileFormatError: Invalid vault file content
         """
         self._filepath = filepath
-        self._data = _load_vault_file(filepath, password)
+        self._vault_obj = _load_vault_file(filepath, password)
 
         # The following attributes are for faster access
-        self._secrets = self._data['secrets']
+        self._secrets = self._vault_obj['secrets']
 
     @property
     def filepath(self):
@@ -112,7 +105,7 @@ class VaultFile(object):
 
         Example:
 
-          Using the following Ansible vault file:
+          Using the following vault file:
 
           .. code-block:: yaml
 
@@ -161,7 +154,7 @@ def _load_vault_file(filepath, password=None):
     Parameters:
 
       filepath (:term:`unicode string`):
-        Path name of Ansible vault file.
+        Path name of vault file.
 
       password (:term:`unicode string`):
         Password for decrypting the vault file. If `None`, the vault file must
@@ -171,52 +164,21 @@ def _load_vault_file(filepath, password=None):
       dict: Python dict representing the vault file content.
 
     Raises:
-      VaultFileOpenError: Error opening vault file
-      VaultFileDecryptError: Error decrypting an encrypted vault file
+      EasyVaultException: Error with opening or decrypting vault file
       VaultFileFormatError: Invalid vault file content
     """
 
-    # Read the raw data from the vault file
+    password = easy_vault.get_password(filepath)
+    vault = easy_vault.EasyVault(filepath, password)
     try:
-        with open(filepath, 'r') as fp:
-            raw_data = fp.read()
-    except (OSError, IOError) as exc:
-        new_exc = VaultFileOpenError(
-            "Cannot open vault file: {fn}: {exc}".
-            format(fn=filepath, exc=exc))
-        new_exc.__cause__ = None
-        raise new_exc  # VaultFileOpenError
-
-    # Decrypt the vault data if needed
-    if is_encrypted(raw_data):
-        if password is None:
-            raise VaultFileDecryptError(
-                "Cannot decrypt vault file {fn}: No password was provided".
-                format(fn=filepath))
-        password = password.encode('utf-8')
-        vault = VaultLib([(DEFAULT_VAULT_ID_MATCH, VaultSecret(password))])
-        try:
-            raw_data = vault.decrypt(raw_data)
-        except AnsibleError as exc:
-            new_exc = VaultFileDecryptError(
-                "Cannot decrypt vault file {fn}: {exc}".
-                format(fn=filepath, exc=exc))
-            new_exc.__cause__ = None
-            raise new_exc  # VaultFileDecryptError
-
-    # Parse the vault data as YAML
-    try:
-        data_obj = yaml.safe_load(raw_data)
-    except yaml.YAMLError as exc:
-        new_exc = VaultFileFormatError(
-            "Invalid YAML syntax in vault file {fn}: {exc}".
-            format(fn=filepath, exc=exc))
-        new_exc.__cause__ = None
-        raise new_exc  # VaultFileFormatError
+        vault_obj = vault.get_yaml()
+    except easy_vault.EasyVaultException as exc:
+        raise exc  # For now. TODO: Encapsulate exceptions
+    easy_vault.set_password(filepath, password)
 
     # Validate the data object using JSON schema
     try:
-        jsonschema.validate(data_obj, VAULT_FILE_SCHEMA)
+        jsonschema.validate(vault_obj, VAULT_FILE_SCHEMA)
         # Raises jsonschema.exceptions.SchemaError if JSON schema is invalid
     except jsonschema.exceptions.ValidationError as exc:
         if exc.absolute_path:
@@ -224,7 +186,6 @@ def _load_vault_file(filepath, password=None):
                 format('.'.join(str(e) for e in exc.absolute_path))
         else:
             elem_str = 'top-level element'
-        # import pdb; pdb.set_trace()
         new_exc = VaultFileFormatError(
             "Invalid format in vault file {fn}: Validation failed on {elem}: "
             "{msg}".
@@ -232,4 +193,4 @@ def _load_vault_file(filepath, password=None):
         new_exc.__cause__ = None
         raise new_exc  # VaultFileFormatError
 
-    return data_obj
+    return vault_obj

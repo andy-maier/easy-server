@@ -83,6 +83,8 @@ wheel==0.33.5; python_version >= '3.8'
 
 # Direct dependencies for installation (must be consistent with requirements.txt)
 
+easy-vault==0.5.0
+
 # PyYAML is also pulled in by dparse and python-coveralls
 PyYAML==5.3.1; python_version == '2.7'
 PyYAML==5.2; python_version == '3.4'
@@ -91,8 +93,6 @@ PyYAML==5.3.1; python_version >= '3.5'
 yamlloader==0.5.5
 jsonschema==2.6.0
 
-ansible==2.9.0
-
 
 # Indirect dependencies for installation (must be consistent with requirements.txt, if present)
 
@@ -100,9 +100,6 @@ pyrsistent==0.14.0
 
 
 # Direct dependencies for development (must be consistent with dev-requirements.txt)
-
-# used by show.py script
-keyring==18.0.0
 
 # pytest
 pytest==4.3.1; python_version <= '3.6'
