@@ -100,19 +100,4 @@ Exception classes
 Package version
 ---------------
 
-The package version can be accessed by programs using the
-``easy_server.__version__`` variable [#]_:
-
-.. autodata:: easy_server._version.__version__
-
-This documentation may have been built from a development level of the
-package. You can recognize a development version of this package by the
-presence of a ".devD" suffix in the version string. Development versions are
-pre-versions of the next assumed version that is not yet released. For example,
-version 0.1.2.dev25 is development pre-version #25 of the next version to be
-released after 0.1.1. Version 1.1.2 is an `assumed` next version, because the
-`actually released` next version might be 0.2.0 or even 1.0.0.
-
-.. [#] For tooling reasons, that variable is shown as
-   ``easy_server._version.__version__`` in this documentation, but
-   it should be accessed as ``easy_server.__version__``.
+.. autodata:: easy_server.__version__
