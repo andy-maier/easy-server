@@ -20,6 +20,6 @@ secure-server-access - Secure Server Access
 from __future__ import absolute_import, print_function
 from ._version import __version__  # noqa: F401
 from ._exceptions import *  # noqa: F403,F401
-from ._vaultfile import *  # noqa: F403,F401
+from ._vault_file import *  # noqa: F403,F401
 from ._srvdef import *  # noqa: F403,F401
-from ._srvdeffile import *  # noqa: F403,F401
+from ._srvdef_file import *  # noqa: F403,F401

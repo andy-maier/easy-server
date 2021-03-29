@@ -22,7 +22,7 @@ import six
 from secure_server_access import ServerDefinitionFile, \
     ServerDefinitionFileFormatError, ServerDefinitionFileOpenError
 # White box testing: We test an internal function
-from secure_server_access._srvdeffile import _load_server_definition_file
+from secure_server_access._srvdef_file import _load_server_definition_file
 
 from ..utils.simplified_test_function import simplified_test_function
 
