@@ -1,5 +1,5 @@
 secure-server-access - Secure Server Access
-=========================================
+===========================================
 
 .. image:: https://badge.fury.io/py/secure-server-access.svg
     :target: https://pypi.python.org/pypi/secure-server-access/
@@ -21,52 +21,30 @@ secure-server-access - Secure Server Access
 Overview
 --------
 
-The **secure-server-access** Python package is a library for retrieving the
-secrets needed for accessing servers or services from an encrypted
-`Ansible vault file`_ in YAML format.
+The **secure-server-access** package is a library for retrieving the information
+needed for accessing servers (or service), such as IP address, logon credentials,
+or informal information such as contact name or which network to use.
 
-The servers are identified with user-defined nicknames and the data structure
-of the secrets for each server is completely user-defined. The password for the
-Ansible vault file must be provided by the caller of the **secure-server-access**
-library. The documentation describes approaches for how the vault password can
-be stored securely in CI systems and in keyring facilities.
+The information for accessing the servers is divided into an open part that is
+defined in a *server definition file*, and a protected part containing the
+secrets for the actual access that is defined in a *vault file*. The vault file
+can be encrypted and decrypted using the ``easy-vault`` command provided by the
+`easy-vault <https://easy-vault.readthedocs.io/en/latest/>`_ package.
 
-An optional server definition file in YAML format is used to define some basic
-information about the servers and to define groups of servers and a default
-server or group. The servers and groups are identified using user-defined
-nicknames. The Ansible vault file uses the same server nicknames to store the
-secrets.
+The server definition file defines nicknames for the servers and allows grouping
+them into groups that also have nicknames.
 
-The end result is a convenient, flexible and secure way how your Python programs
+The **secure-server-access** package is not used by end users, but by programs
+that integrate with it, such as test programs or command line clients that
+access servers or services. The users of these programs can then access
+servers or services by means of the server and group nicknames that are defined.
+
+The secrets needed to access the servers remain in the vault file which remains
+encrypted in teh file system while the server is accessed.
+
+This provides a convenient, flexible and secure way how your Python programs
 can retrieve the secrets needed for accessing servers or services, while
-protecting these secrets in a secure way. In addition, groups of servers can be
-accessed for example to run automated tests against each server in the group.
-
-
-.. _`Supported environments`:
-
-Supported environments
-----------------------
-
-The **secure-server-access** package is supported in these environments:
-
-* Operating Systems: Linux, Windows (native, and with UNIX-like environments),
-  macOS/OS-X
-
-* Python: 2.7, 3.4, and higher
-
-
-.. _`Installation`:
-
-Installation
-------------
-
-The following command installs the **secure-server-access** package and its
-prerequisite packages into the active Python environment:
-
-.. code-block:: bash
-
-    $ pip install secure-server-access
+protecting these secrets in a secure way.
 
 
 .. _`Documentation and change log`:
@@ -87,6 +65,5 @@ The **secure-server-access** project is provided under the
 
 .. # Links:
 
-.. _`Ansible vault file`: https://docs.ansible.com/ansible/latest/user_guide/vault.html
 .. _`Documentation`: https://secure-server-access.readthedocs.io/en/latest/
 .. _`Change log`: https://secure-server-access.readthedocs.io/en/latest/changes.html
