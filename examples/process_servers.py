@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Example script that processes the servers of a server or grou nickname.
+Example script that processes the servers of a server or group nickname.
 """
 
 import sys
@@ -16,7 +16,7 @@ def main():
     """Main function"""
 
     if len(sys.argv) < 4:
-        print("Usage: {} vaultfile srvdeffile nickname".format(sys.argv[0]))
+        print("Usage: {} VAULTFILE SRVDEFFILE NICKNAME".format(sys.argv[0]))
         sys.exit(2)
 
     vault_file = sys.argv[1]
@@ -29,13 +29,13 @@ def main():
         print("Error: {}".format(exc))
         return 1
 
-    sd_list = sdf.list_servers(nickname)
-
     try:
         vault = VaultFile(vault_file)
     except VaultFileException as exc:
         print("Error: {}".format(exc))
         return 1
+
+    sd_list = sdf.list_servers(nickname)
 
     for sd in sd_list:
         nick = sd.nickname

@@ -11,7 +11,7 @@
 # limitations under the License.
 
 """
-Encapsulation of vault files.
+Support for vault files.
 """
 
 from __future__ import absolute_import, print_function
@@ -19,7 +19,8 @@ from copy import deepcopy
 import jsonschema
 import easy_vault
 
-from ._exceptions import VaultFileFormatError
+from ._exceptions import VaultFileOpenError, VaultFileDecryptError, \
+    VaultFileFormatError
 
 __all__ = ['VaultFile']
 
@@ -54,9 +55,12 @@ VAULT_FILE_SCHEMA = {
 
 class VaultFile(object):
     """
-    Encapsulates a vault file used by the secure-server-access package.
+    A vault file that specifies the sensitive portion of server definitions,
+    i.e. the secrets for accessing the servers.
 
-    For a description of the file format, see :ref:`Format of vault files`.
+    An object of this class is tied to a single "easy-vault" file.
+
+    For a description of the file format, see section :ref:`Vault files`.
 
     The vault file may be in clear text form (i.e. unencrypted) or
     encrypted. The file remains unchanged in all cases, and only the data read
@@ -68,16 +72,16 @@ class VaultFile(object):
         Parameters:
 
           filepath (:term:`unicode string`):
-            Path name of vault file.
+            Path name of the vault file.
 
           password (:term:`unicode string`):
             Password for decrypting the vault file. If not provided, the vault
             file must be in clear text form (i.e. unencrypted).
 
         Raises:
-          VaultFileOpenError: Error opening vault file
-          VaultFileDecryptError: Error decrypting an encrypted vault file
-          VaultFileFormatError: Invalid vault file content
+          VaultFileOpenError: Error with opening the vault file
+          VaultFileDecryptError: Error with decrypting the vault file
+          VaultFileFormatError: Invalid vault file format
         """
         self._filepath = filepath
         self._vault_obj = _load_vault_file(filepath, password)
@@ -88,7 +92,7 @@ class VaultFile(object):
     @property
     def filepath(self):
         """
-        :term:`unicode string`: File path of the vault file.
+        :term:`unicode string`: Path name of the vault file.
         """
         return self._filepath
 
@@ -164,16 +168,29 @@ def _load_vault_file(filepath, password=None):
       dict: Python dict representing the vault file content.
 
     Raises:
-      EasyVaultException: Error with opening or decrypting vault file
-      VaultFileFormatError: Invalid vault file content
+      VaultFileOpenError: Error with opening the vault file
+      VaultFileDecryptError: Error with decrypting the vault file
+      VaultFileFormatError: Invalid vault file format
     """
 
     password = easy_vault.get_password(filepath)
+
     vault = easy_vault.EasyVault(filepath, password)
     try:
         vault_obj = vault.get_yaml()
-    except easy_vault.EasyVaultException as exc:
-        raise exc  # For now. TODO: Encapsulate exceptions
+    except easy_vault.EasyVaultFileError as exc:
+        new_exc = VaultFileOpenError(str(exc))
+        new_exc.__cause__ = None
+        raise new_exc  # VaultFileOpenError
+    except easy_vault.EasyVaultDecryptError as exc:
+        new_exc = VaultFileDecryptError(str(exc))
+        new_exc.__cause__ = None
+        raise new_exc  # VaultFileDecryptError
+    except easy_vault.EasyVaultYamlError as exc:
+        new_exc = VaultFileFormatError(str(exc))
+        new_exc.__cause__ = None
+        raise new_exc  # VaultFileFormatError
+
     easy_vault.set_password(filepath, password)
 
     # Validate the data object using JSON schema

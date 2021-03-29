@@ -15,14 +15,14 @@ def main():
     """Main function"""
 
     if len(sys.argv) < 2:
-        print("Usage: {} vaultfile".format(sys.argv[0]))
+        print("Usage: {} VAULTFILE".format(sys.argv[0]))
         sys.exit(2)
 
     vault_file = sys.argv[1]
 
     try:
         vault = VaultFile(vault_file)
-    except (easy_vault.EasyVaultException, VaultFileException) as exc:
+    except VaultFileException as exc:
         print("Error: {}".format(exc))
         return 1
 

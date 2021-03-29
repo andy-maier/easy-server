@@ -16,19 +16,13 @@
 API Reference
 =============
 
-This section describes the API of the **secure-server-access** package.
+This section describes the Python API of the **secure-server-access** package.
+The API is kept stable using the compatibility rules defined for
+`semantic versioning <https://semver.org/>`_. An exception to this rule
+are fixes for security issues.
 
-
-.. _`VaultFile class`:
-
-VaultFile class
----------------
-
-.. autoclass:: secure_server_access.VaultFile
-    :members:
-    :autosummary:
-    :autosummary-inherited-members:
-    :special-members: __str__
+Any functions not described in this section are considered internal and may
+change incompatibly without warning.
 
 
 .. _`ServerDefinitionFile class`:
@@ -55,10 +49,34 @@ ServerDefinition class
     :special-members: __str__
 
 
+.. _`VaultFile class`:
+
+VaultFile class
+---------------
+
+.. autoclass:: secure_server_access.VaultFile
+    :members:
+    :autosummary:
+    :autosummary-inherited-members:
+    :special-members: __str__
+
+
 .. _`Exception classes`:
 
 Exception classes
 -----------------
+
+.. autoclass:: secure_server_access.ServerDefinitionFileException
+    :members:
+    :special-members: __str__
+
+.. autoclass:: secure_server_access.ServerDefinitionFileOpenError
+    :members:
+    :special-members: __str__
+
+.. autoclass:: secure_server_access.ServerDefinitionFileFormatError
+    :members:
+    :special-members: __str__
 
 .. autoclass:: secure_server_access.VaultFileException
     :members:
@@ -73,18 +91,6 @@ Exception classes
     :special-members: __str__
 
 .. autoclass:: secure_server_access.VaultFileFormatError
-    :members:
-    :special-members: __str__
-
-.. autoclass:: secure_server_access.ServerDefinitionFileException
-    :members:
-    :special-members: __str__
-
-.. autoclass:: secure_server_access.ServerDefinitionFileOpenError
-    :members:
-    :special-members: __str__
-
-.. autoclass:: secure_server_access.ServerDefinitionFileFormatError
     :members:
     :special-members: __str__
 
