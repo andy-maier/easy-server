@@ -17,60 +17,186 @@ Usage
 =====
 
 
-.. _`Ansible vault file`:
+.. _`Supported environments`:
 
-Ansible vault file
-------------------
+Supported environments
+----------------------
 
-The `Ansible vault file`_ used by the **secure-server-access** library is in YAML
-format and defines the secrets for accessing each server.
+The **secure-server-access** package is supported in these environments:
 
-The servers are identified with user-defined nicknames, and the data structure
-of the secrets is completely user-defined.
+* Operating Systems: Linux, macOS / OS-X, native Windows, Linux subsystem in
+  Windows, UNIX-like environments in Windows.
 
-Here are some example Ansible vault files that define server secrets using
-different data structures.
+* Python: 2.7, 3.4, and higher
 
-This example defines the server secrets as host, username and password:
+
+.. _`Installation`:
+
+Installation
+------------
+
+The following command installs the **secure-server-access** package and its
+prerequisite packages into the active Python environment:
+
+.. code-block:: bash
+
+    $ pip install secure-server-access
+
+
+.. _`Server definition file`:
+
+Server definition file
+----------------------
+
+The *server definition file* is the open part of the server definitions
+that are used. It is in YAML format and defines servers, server
+groups and a default server or group. The servers and server groups are
+identified using user-defined nicknames and the file stores some basic
+information about them.
+
+The secrets for accessing the servers are not defined in this file but
+in the :ref:`vault file`. The match between items in these two files is done
+by means of the user-defined nicknames of the servers.
+
+Here is an example server definition file. The format of the file has some
+predefined fixed data about the servers and groups, and additional user-defined
+data for servers and groups.
+
+Here is a complete working example of a server definition file that defines
+two servers and one server group:
 
 .. code-block:: yaml
 
-    secrets:                              # Fixed key
+    servers:                              # Fixed top-level key
 
       myserver1:                          # Nickname of the server
-        host: "10.11.12.13"               # User-defined secrets
-        username: myusername
-        password: mypassword
+        description: "my dev system 1"    # Short description of the server
+        contact_name: "John Doe"          # Optional: Contact for the server
+        access_via: "VPN to dev network"  # Optional: Any special network access needed
+        user_defined:                     # Optional: user-defined additional information
+          stuff: morestuff
+
+      myserver2:                          # Nickname of the server
+        description: "my dev system 2"    # Short description of the server
+        contact_name: "John Doe"          # Optional: Contact for the server
+        access_via: "Intranet"            # Optional: Any special network access needed
+        user_defined:                     # Optional: user-defined additional information
+          stuff: morestuff
+
+    server_groups:                        # Fixed top-level key
+
+      mygroup1:                           # Nickname of the server group
+        description: "my dev systems"     # Short description of server group
+        members:                          # Group members (servers or groups)
+          - myserver1
+          - myserver2
+        user_defined:                     # Optional: user-defined additional information
+          stuff: morestuff
+
+    default: mygroup1                     # Fixed top-level key: default server or group
+
+In the example above, ``myserver1``, ``myserver2``, and ``mygroup1`` are
+nicknames of the respective server or server group definitions. These nicknames
+are used when servers or groups are put into a server group in that file, or
+when they are specified as a default in that file, or when they are used
+in functions of the **secure-server-access** library.
+See :class:`secure_server_access.ServerDefinitionFile` for details.
+
+These nicknames are case sensitive and their allowable character set are
+alphenumeric characters and the underscore character, i.e. ``A-Z``, ``a-z``,
+``0-9``, and ``_``.
+
+The value of the ``servers`` top-level property is an object (=dictionary) that
+has one property for each server that is defined. The property name is the
+server nickname, and the property value is an object with the following
+properties:
+
+* ``description`` (string): Short description of the server (required).
+* ``contact_name`` (string): Name of technical contact for the server (optional,
+  defaults to `None`).
+* ``access_via`` (string): Short reminder on the network/firewall/proxy/vpn
+  used to access the server (optional, defaults to `None`).
+* ``user_defined`` (object): User-defined details of the server (optional).
+
+The value of the ``server_groups`` top-level property is an object that has one
+property for each server group that is defined. The property name is the group
+nickname, and the property value is an object with the following properties:
+
+* ``description`` (string): Short description of the server group (required).
+* ``members`` (list): List of server nicknames or other group nicknames that
+  are the members of the group (required).
+
+The value of the ``default`` top-level property is a string that is the
+nickname of the default server or group.
+
+Server groups may be nested. That is, server groups may be put into other server
+groups at arbitrary nesting depth. There must not be any cycle (i.e. the
+resulting graph of server groups must be a tree).
+
+A particular server or server group may be put into more than one server group.
+
+
+.. _`Vault file`:
+
+Vault file
+----------
+
+The vault file is the protected part of the server definitions that are used.
+It is in YAML format and defines the secrets for each server. The servers are
+identified using the user-defined nicknames from the server definition file.
+
+Here is a complete working example of a server definition file that defines
+the secrets for the two servers from the example server definition file
+shown in the previous section:
+
+.. code-block:: yaml
+
+    secrets:                                # Fixed top-level key
+
+      myserver1:                            # Nickname of the server
+        # User-defined properties:
+        host: "10.11.12.13"
+        username: myuser1
+        password: mypass1
+
+      myserver2:                            # Nickname of the server
+        # User-defined properties:
+        host: "9.10.11.12"
+        username: myuser2
+        password: mypass2
+
+The vault file must have one top-level property named ``secrets``. Below
+that are properties that represent the servers or services. For the sake of
+simplicity, we only talk about servers from now on.
+
+The server items are identified by nicknames (``myserver1`` and ``myserver2``
+in the example above) and can have an arbitrary user-defined set of properties
+(``host``, ``username`` and ``password`` in the example above). The properties
+may be of arbitrary types, i.e. you can build substructures as you see fit.
 
 Here is another example that defines the server secrets as URL and API key
 (which is then more a service than a server):
 
 .. code-block:: yaml
 
-    secrets:
+    secrets:                                # Fixed key
 
-      myserver1:                          # Nickname of the server
+      myserver1:                            # Nickname of the server
+        # User-defined properties:
         url: https://10.11.12.13/myservice
-        api_key: mykey
+        api_key: mykey1
 
+      myserver2:                            # Nickname of the server
+        # User-defined properties:
+        url: https://9.10.11.12/myservice
+        api_key: mykey2
 
-The vault file can be encrypted or decrypted using the `ansible-vault command`_
-that is part of `Ansible`_. Ansible can be installed for example as the
-``ansible`` package from Pypi.
+The vault file can be encrypted or decrypted using the ``easy-vault`` command
+that is part of the
+`easy-vault package <https://easy-vault.readthedocs.io/en/latest/>`_
 
-The vault file can be encrypted or in clear text when the
-**secure-server-access** library functions accessing it are called.
-If it is encrypted, its vault password must be provided by the caller.
-See :class:`secure_server_access.VaultFile` for details.
-
-Python programs for direct human use (e.g. command line utilities) can prompt
-for the vault password and store it in the keyring facility of the local system
-for repetitive use without further prompts.
-
-Python programs that run in a CI system can get the vault password from the
-CI system's facility to store secrets.
-
-See :ref:`Securing the vault password` for details about these approaches.
+The vault file can be in the encrypted state or in clear text when the
+**secure-server-access** library functions are accessing it.
 
 
 .. _`Accessing the secrets in a program`:
@@ -128,101 +254,6 @@ Securing the vault password
 ---------------------------
 
 TBD
-
-
-.. _`Server definition file`:
-
-Server definition file
-----------------------
-
-The *server definition file* is in YAML format and defines servers, server
-groups and a default server or group. The servers and server groups are
-identified using user-defined nicknames and the file stores some basic
-information about them, without revealing any secrets.
-
-The use of a server definition file is optional. For example, a program that
-takes a server nickname as input and only needs to get to the server secrets
-does not need a server definition file. However, if the program is designed to
-run against the servers in a group, or to list the available servers and
-groups, or to provide extra information about the servers, then the server
-definition file would be used. At the end of the day, the choice of using
-a server definition file is up to the Python program using this library.
-
-Here is an example server definition file. The format of the file has some
-predefined fixed data about the servers and groups, and additional user-defined
-data for servers and groups.
-
-Here is a complete working example of a server definition file that defines
-two servers and one server group:
-
-.. code-block:: yaml
-
-    servers:
-
-      myserver1:                          # Nickname of the server
-        description: "my dev system 1"    # Short description of the server
-        contact_name: "John Doe"          # Optional: Contact for the server
-        access_via: "VPN to dev network"  # Optional: Any special network access needed
-        user_defined:                     # Optional: user-defined additional information
-          stuff: morestuff
-
-      myserver2:                          # Nickname of the server
-        description: "my dev system 2"    # Short description of the server
-        contact_name: "John Doe"          # Optional: Contact for the server
-        access_via: "Intranet"            # Optional: Any special network access needed
-        user_defined:                     # Optional: user-defined additional information
-          stuff: morestuff
-
-    server_groups:
-
-      mygroup1:                           # Nickname of the server group
-        description: "my dev systems"     # Short description of server group
-        members:                          # Group members (servers or groups)
-          - myserver1
-          - myserver2
-        user_defined:                     # Optional: user-defined additional information
-          stuff: morestuff
-
-    default: mygroup1                     # Default server or group
-
-In the example above, ``myserver1``, ``myserver2``, and ``mygroup1`` are
-nicknames of the respective server or server group definitions. These nicknames
-are used when servers or groups are put into a server group in that file, or
-when they are specified as a default in that file, or when they are used
-in functions of the **secure-server-access** library.
-See :class:`secure_server_access.ServerDefinitionFile` for details.
-
-These nicknames are case sensitive and their allowable character set are
-alphenumeric characters and the underscore character.
-
-The value of the ``servers`` top-level property is an object (=dictionary) that
-has one property for each server that is defined. The property name is the
-server nickname, and the property value is an object with the following
-properties.
-
-* ``description`` (string): Short description of the server (required).
-* ``contact_name`` (string): Name of technical contact for the server (optional,
-  defaults to `None`).
-* ``access_via`` (string): Short reminder on the network/firewall/proxy/vpn
-  used to access the server (optional, defaults to `None`).
-* ``user_defined`` (object): User-defined details of the server (optional).
-
-The value of the ``server_groups`` top-level property is an object that has one
-property for each server group that is defined. The property name is the group
-nickname, and the property value is an object with the following properties:
-
-* ``description`` (string): Short description of the server group (required).
-* ``members`` (list): List of server nicknames or other group nicknames that
-  are the members of the group (required).
-
-The value of the ``default`` top-level property is a string that is the
-nickname of the default server or group.
-
-Server groups may be nested. That is, server groups may be put into other server
-groups at arbitrary nesting depth. There must not be any cycle (i.e. the
-resulting graph of server groups must be a tree).
-
-A particular server or server group may be put into more than one server group.
 
 
 .. # Links:
