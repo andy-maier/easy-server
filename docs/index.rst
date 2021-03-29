@@ -15,27 +15,27 @@ easy-server - Secure server access that is easy to use
 ******************************************************
 
 The **easy-server** package is a Python library for securely defining
-sensitive information for accessing servers (or services), such as IP address,
-logon credentials.
+sensitive information for accessing servers (or services), such as logon
+credentials or API keys.
 
 The information for accessing the servers is divided into an general portion
 that is defined in an openly accessible *server definition file*, and
 a sensitive portion that is defined in an encrypted *vault file*.
 
-The vault file must be an "easy-vault" file and can be encrypted and decrypted
-using the ``easy-vault`` command provided by the
-`easy-vault <https://easy-vault.readthedocs.io/en/latest/>`_ package.
 The vault file defines the secrets needed to access the servers, such as
-passwords or API keys. The "easy-vault" files remain encrypted in the file
-system while their content is used to access the servers.
+logon credentials or API keys. The vault file must be an "easy-vault" file and
+thus can be encrypted and decrypted using the ``easy-vault`` command provided
+by the `easy-vault <https://easy-vault.readthedocs.io/en/latest/>`_ package.
+The "easy-vault" files remain encrypted in the file system while their content
+is used to access the servers.
 
 The server definition file defines general information about the servers, such
 as a short description, contact name, or a reminder which network to use for
 accessing them.
 
-The link between the server items defined in the server definition file and
-the vault file are user-defined nicknames for the servers. These nicknames
-can also used by users as a convenient way to identify servers in commands.
+The link between the server definition file and the vault file are user-defined
+nicknames for the servers. These nicknames can also used by users as a
+convenient way to identify servers in commands.
 
 The server definition files support the definition of server groups that
 also have a nickname.
