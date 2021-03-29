@@ -18,7 +18,7 @@ The **easy-server** package is a Python library for securely defining
 sensitive information for accessing servers (or services), such as logon
 credentials or API keys.
 
-The information for accessing the servers is divided into an general portion
+The information for accessing the servers is divided into a general portion
 that is defined in an openly accessible *server definition file*, and
 a sensitive portion that is defined in an encrypted *vault file*.
 
