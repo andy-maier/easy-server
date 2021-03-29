@@ -94,7 +94,7 @@ class ServerDefinition(object):
     @property
     def user_defined(self):
         """
-        dict: Details of the server, such as IP address.
+        dict: Additional user-defined properties of the server.
 
         This is the value of the ``user_defined`` property of the server object
         in the server definition file. This value can have an arbitrary

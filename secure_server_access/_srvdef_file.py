@@ -11,7 +11,7 @@
 # limitations under the License.
 
 """
-Encapsulation of server definition files.
+Support for server definition files.
 """
 
 from __future__ import absolute_import, print_function
@@ -128,11 +128,27 @@ SERVER_DEFINITION_FILE_SCHEMA = {
 
 class ServerDefinitionFile(object):
     """
-    Encapsulates the access to a server definition file.
+    A server definition file that specifies the openly accessible portion
+    of the server definitions.
 
+    An object of this class is tied to a single server definition file.
+
+    For a description of the file format, see section
+    :ref:`Server definition files`.
     """
 
     def __init__(self, filepath):
+        """
+        Parameters:
+
+          filepath (:term:`unicode string`):
+            Path name of the server definition file.
+
+        Raises:
+          ServerDefinitionFileOpenError: Error opening server definition file
+          ServerDefinitionFileFormatError: Invalid server definition file
+            format
+        """
         self._filepath = filepath
         self._data = _load_server_definition_file(filepath)
 
@@ -144,7 +160,7 @@ class ServerDefinitionFile(object):
     @property
     def filepath(self):
         """
-        :term:`unicode string`: File path of the server definition file.
+        :term:`unicode string`: Path name of the server definition file.
         """
         return self._filepath
 

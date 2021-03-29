@@ -21,30 +21,39 @@ secure-server-access - Secure Server Access
 Overview
 --------
 
-The **secure-server-access** package is a library for retrieving the information
-needed for accessing servers (or service), such as IP address, logon credentials,
-or informal information such as contact name or which network to use.
+The **secure-server-access** package is a Python library for securely defining
+sensitive information for accessing servers (or services), such as IP address,
+logon credentials.
 
-The information for accessing the servers is divided into an open part that is
-defined in a *server definition file*, and a protected part containing the
-secrets for the actual access that is defined in a *vault file*. The vault file
-can be encrypted and decrypted using the ``easy-vault`` command provided by the
+The information for accessing the servers is divided into an general portion
+that is defined in an openly accessible *server definition file*, and
+a sensitive portion that is defined in an encrypted *vault file*.
+
+The vault file must be an "easy-vault" file and can be encrypted and decrypted
+using the ``easy-vault`` command provided by the
 `easy-vault <https://easy-vault.readthedocs.io/en/latest/>`_ package.
+The vault file defines the secrets needed to access the servers, such as
+passwords or API keys. The "easy-vault" files remain encrypted in the file
+system while their content is used to access the servers.
 
-The server definition file defines nicknames for the servers and allows grouping
-them into groups that also have nicknames.
+The server definition file defines general information about the servers, such
+as a short description, contact name, or a reminder which network to use for
+accessing them.
 
-The **secure-server-access** package is not used by end users, but by programs
-that integrate with it, such as test programs or command line clients that
-access servers or services. The users of these programs can then access
-servers or services by means of the server and group nicknames that are defined.
+The link between the server items defined in the server definition file and
+the vault file are user-defined nicknames for the servers. These nicknames
+can also used by users as a convenient way to identify servers in commands.
 
-The secrets needed to access the servers remain in the vault file which remains
-encrypted in teh file system while the server is accessed.
+The server definition files support the definition of server groups that
+also have a nickname.
 
-This provides a convenient, flexible and secure way how your Python programs
-can retrieve the secrets needed for accessing servers or services, while
-protecting these secrets in a secure way.
+Typical use cases for the **secure-server-access** package are test programs
+running end-to-end tests against real servers, or command line clients that
+access servers or services.
+
+This provides a convenient, flexible and secure way how Python programs can
+retrieve the secrets needed for accessing servers or services, while protecting
+these secrets in a secure way.
 
 
 .. _`Documentation and change log`:
