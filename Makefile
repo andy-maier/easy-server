@@ -416,7 +416,7 @@ all: develop build builddoc check pylint test
 .PHONY: clobber
 clobber: clean
 	@echo "Makefile: Removing everything for a fresh start"
-	-$(call RM_FUNC,*.done MANIFEST.in $(dist_files) $(dist_dir)/$(package_name)-$(package_version)*.egg $(package_name)/*cover)
+	-$(call RM_FUNC,*.done MANIFEST.in $(dist_files) $(dist_dir)/$(package_name)-$(package_version)*.egg $(package_name)/*cover .DS_Store)
 	-$(call RMDIR_FUNC,$(doc_build_dir) .tox $(coverage_html_dir) $(package_name).egg-info)
 	@echo "Makefile: Done removing everything for a fresh start"
 	@echo "Makefile: Target $@ done."
