@@ -71,7 +71,8 @@ class VaultFile(object):
     and not to use the keyring.
     """
 
-    def __init__(self, filepath, password=None, use_keyring=True):
+    def __init__(
+            self, filepath, password=None, use_keyring=True, verbose=False):
         """
         Parameters:
 
@@ -86,13 +87,18 @@ class VaultFile(object):
             Use the keyring (`True`) or not (`False`). This applies to both
             retrieving and storing the password.
 
+          verbose (bool):
+            Print additional messages. Note that the password prompt (if needed)
+            is displayed regardless of verbose mode.
+
         Raises:
           VaultFileOpenError: Error with opening the vault file
           VaultFileDecryptError: Error with decrypting the vault file
           VaultFileFormatError: Invalid vault file format
         """
         self._filepath = filepath
-        self._vault_obj = _load_vault_file(filepath, password, use_keyring)
+        self._vault_obj = _load_vault_file(
+            filepath, password, use_keyring, verbose)
 
         # The following attributes are for faster access
         self._secrets = self._vault_obj['secrets']
@@ -157,7 +163,7 @@ class VaultFile(object):
         return deepcopy(secrets_dict)
 
 
-def _load_vault_file(filepath, password, use_keyring):
+def _load_vault_file(filepath, password, use_keyring, verbose):
     """
     Load the vault file and return its complete content.
 
@@ -176,6 +182,10 @@ def _load_vault_file(filepath, password, use_keyring):
         Use the keyring (`True`) or not (`False`). This applies to both
         retrieving and storing the password.
 
+      verbose (bool):
+        Print additional messages. Note that the password prompt (if needed)
+        is displayed regardless of verbose mode.
+
     Returns:
       dict: Python dict representing the vault file content.
 
@@ -186,7 +196,8 @@ def _load_vault_file(filepath, password, use_keyring):
     """
 
     if password is None:
-        password = easy_vault.get_password(filepath, use_keyring=use_keyring)
+        password = easy_vault.get_password(
+            filepath, use_keyring=use_keyring, verbose=verbose)
 
     vault = easy_vault.EasyVault(filepath, password)
     try:
@@ -204,7 +215,8 @@ def _load_vault_file(filepath, password, use_keyring):
         new_exc.__cause__ = None
         raise new_exc  # VaultFileFormatError
 
-    easy_vault.set_password(filepath, password, use_keyring=use_keyring)
+    easy_vault.set_password(
+        filepath, password, use_keyring=use_keyring, verbose=verbose)
 
     # Validate the data object using JSON schema
     try:
