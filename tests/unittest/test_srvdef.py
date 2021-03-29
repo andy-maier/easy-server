@@ -16,7 +16,7 @@ Test the _srvdef.py module.
 
 from __future__ import absolute_import, print_function
 import pytest
-from secure_server_access import ServerDefinition
+from easy_server import ServerDefinition
 
 from ..utils.simplified_test_function import simplified_test_function
 

@@ -1,4 +1,4 @@
-# Pip requirements file for building docs of secure-server-access project on RTD.
+# Pip requirements file for building docs of easy-server project on RTD.
 #
 # The order of packages is significant, because pip processes them in the order
 # of appearance.

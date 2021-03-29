@@ -16,7 +16,7 @@
 API Reference
 =============
 
-This section describes the Python API of the **secure-server-access** package.
+This section describes the Python API of the **easy-server** package.
 The API is kept stable using the compatibility rules defined for
 `semantic versioning <https://semver.org/>`_. An exception to this rule
 are fixes for security issues.
@@ -30,7 +30,7 @@ change incompatibly without warning.
 ServerDefinitionFile class
 --------------------------
 
-.. autoclass:: secure_server_access.ServerDefinitionFile
+.. autoclass:: easy_server.ServerDefinitionFile
     :members:
     :autosummary:
     :autosummary-inherited-members:
@@ -42,7 +42,7 @@ ServerDefinitionFile class
 ServerDefinition class
 ----------------------
 
-.. autoclass:: secure_server_access.ServerDefinition
+.. autoclass:: easy_server.ServerDefinition
     :members:
     :autosummary:
     :autosummary-inherited-members:
@@ -54,7 +54,7 @@ ServerDefinition class
 VaultFile class
 ---------------
 
-.. autoclass:: secure_server_access.VaultFile
+.. autoclass:: easy_server.VaultFile
     :members:
     :autosummary:
     :autosummary-inherited-members:
@@ -66,31 +66,31 @@ VaultFile class
 Exception classes
 -----------------
 
-.. autoclass:: secure_server_access.ServerDefinitionFileException
+.. autoclass:: easy_server.ServerDefinitionFileException
     :members:
     :special-members: __str__
 
-.. autoclass:: secure_server_access.ServerDefinitionFileOpenError
+.. autoclass:: easy_server.ServerDefinitionFileOpenError
     :members:
     :special-members: __str__
 
-.. autoclass:: secure_server_access.ServerDefinitionFileFormatError
+.. autoclass:: easy_server.ServerDefinitionFileFormatError
     :members:
     :special-members: __str__
 
-.. autoclass:: secure_server_access.VaultFileException
+.. autoclass:: easy_server.VaultFileException
     :members:
     :special-members: __str__
 
-.. autoclass:: secure_server_access.VaultFileOpenError
+.. autoclass:: easy_server.VaultFileOpenError
     :members:
     :special-members: __str__
 
-.. autoclass:: secure_server_access.VaultFileDecryptError
+.. autoclass:: easy_server.VaultFileDecryptError
     :members:
     :special-members: __str__
 
-.. autoclass:: secure_server_access.VaultFileFormatError
+.. autoclass:: easy_server.VaultFileFormatError
     :members:
     :special-members: __str__
 
@@ -101,9 +101,9 @@ Package version
 ---------------
 
 The package version can be accessed by programs using the
-``secure_server_access.__version__`` variable [#]_:
+``easy_server.__version__`` variable [#]_:
 
-.. autodata:: secure_server_access._version.__version__
+.. autodata:: easy_server._version.__version__
 
 This documentation may have been built from a development level of the
 package. You can recognize a development version of this package by the
@@ -114,5 +114,5 @@ released after 0.1.1. Version 1.1.2 is an `assumed` next version, because the
 `actually released` next version might be 0.2.0 or even 1.0.0.
 
 .. [#] For tooling reasons, that variable is shown as
-   ``secure_server_access._version.__version__`` in this documentation, but
-   it should be accessed as ``secure_server_access.__version__``.
+   ``easy_server._version.__version__`` in this documentation, but
+   it should be accessed as ``easy_server.__version__``.

@@ -11,10 +11,10 @@
 .. limitations under the License.
 
 
-secure-server-access - Secure Server Access
-*******************************************
+easy-server - Secure server access that is easy to use
+******************************************************
 
-The **secure-server-access** package is a Python library for securely defining
+The **easy-server** package is a Python library for securely defining
 sensitive information for accessing servers (or services), such as IP address,
 logon credentials.
 
@@ -40,7 +40,7 @@ can also used by users as a convenient way to identify servers in commands.
 The server definition files support the definition of server groups that
 also have a nickname.
 
-Typical use cases for the **secure-server-access** package are test programs
+Typical use cases for the **easy-server** package are test programs
 running end-to-end tests against real servers, or command line clients that
 access servers or services.
 

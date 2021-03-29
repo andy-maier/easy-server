@@ -28,8 +28,7 @@ __all__ = ['VaultFile']
 # JSON schema describing the structure of the vault files
 VAULT_FILE_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "JSON schema for vault files used by the "
-             "secure-server-access package",
+    "title": "JSON schema for vault files used by the easy-server package",
     "definitions": {},
     "type": "object",
     "required": [

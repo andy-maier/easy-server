@@ -11,7 +11,7 @@
 # limitations under the License.
 
 """
-secure-server-access - Secure Server Access
+easy-server - Secure server access that is easy to use
 """
 
 # There are submodules, but users shouldn't need to know about them.
