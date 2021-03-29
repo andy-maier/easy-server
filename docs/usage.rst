@@ -22,7 +22,7 @@ Usage
 Supported environments
 ----------------------
 
-The **secure-server-access** package is supported in these environments:
+The **easy-server** package is supported in these environments:
 
 * Operating Systems: Linux, macOS / OS-X, native Windows, Linux subsystem in
   Windows, UNIX-like environments in Windows.
@@ -35,12 +35,12 @@ The **secure-server-access** package is supported in these environments:
 Installation
 ------------
 
-The following command installs the **secure-server-access** package and its
+The following command installs the **easy-server** package and its
 prerequisite packages into the active Python environment:
 
 .. code-block:: bash
 
-    $ pip install secure-server-access
+    $ pip install easy-server
 
 
 .. _`Server definition files`:
@@ -104,8 +104,8 @@ In the example above, ``myserver1``, ``myserver2``, and ``mygroup1`` are
 nicknames of the respective server or server group definitions. These nicknames
 are used when servers or groups are put into a server group in that file, or
 when they are specified as a default in that file, or when they are used
-in functions of the **secure-server-access** library.
-See :class:`secure_server_access.ServerDefinitionFile` for details.
+in functions of the **easy-server** library.
+See :class:`easy_server.ServerDefinitionFile` for details.
 
 These nicknames are case sensitive and their allowable character set are
 alphenumeric characters and the underscore character, i.e. ``A-Z``, ``a-z``,
@@ -214,7 +214,7 @@ that is part of the
 `easy-vault package <https://easy-vault.readthedocs.io/en/latest/>`_
 
 The vault file can be in the encrypted state or in clear text when the
-**secure-server-access** library functions are accessing it. It is recommended
+**easy-server** library functions are accessing it. It is recommended
 to always have it in the encrypted state and to decrypt it only for the period
 of time while it is edited.
 
@@ -230,7 +230,7 @@ or in this example, the servers in a server group:
 
 .. code-block:: python
 
-    from secure_server_access import VaultFile, VaultFileException, \
+    from easy_server import VaultFile, VaultFileException, \
         ServerDefinitionFile, ServerDefinitionFileException
 
     # Some parameters that typically would be input to the program:

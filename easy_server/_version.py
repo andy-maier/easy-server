@@ -11,7 +11,7 @@
 # limitations under the License.
 
 """
-Version of the secure-server-access package.
+Version of the easy-server package.
 """
 
 #: The full version of this package including any development levels, as a

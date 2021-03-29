@@ -1,27 +1,27 @@
-secure-server-access - Secure Server Access
-===========================================
+easy-server - Secure server access that is easy to use
+======================================================
 
-.. image:: https://badge.fury.io/py/secure-server-access.svg
-    :target: https://pypi.python.org/pypi/secure-server-access/
+.. image:: https://badge.fury.io/py/easy-server.svg
+    :target: https://pypi.python.org/pypi/easy-server/
     :alt: Version on Pypi
 
-.. image:: https://github.com/andy-maier/secure-server-access/workflows/test/badge.svg?branch=master
-    :target: https://github.com/andy-maier/secure-server-access/actions/
+.. image:: https://github.com/andy-maier/easy-server/workflows/test/badge.svg?branch=master
+    :target: https://github.com/andy-maier/easy-server/actions/
     :alt: Actions status
 
-.. image:: https://readthedocs.org/projects/secure-server-access/badge/?version=latest
-    :target: https://readthedocs.org/projects/secure-server-access/builds/
+.. image:: https://readthedocs.org/projects/easy-server/badge/?version=latest
+    :target: https://readthedocs.org/projects/easy-server/builds/
     :alt: Docs build status (master)
 
-.. image:: https://coveralls.io/repos/github/andy-maier/secure-server-access/badge.svg?branch=master
-    :target: https://coveralls.io/github/andy-maier/secure-server-access?branch=master
+.. image:: https://coveralls.io/repos/github/andy-maier/easy-server/badge.svg?branch=master
+    :target: https://coveralls.io/github/andy-maier/easy-server?branch=master
     :alt: Test coverage (master)
 
 
 Overview
 --------
 
-The **secure-server-access** package is a Python library for securely defining
+The **easy-server** package is a Python library for securely defining
 sensitive information for accessing servers (or services), such as IP address,
 logon credentials.
 
@@ -47,7 +47,7 @@ can also used by users as a convenient way to identify servers in commands.
 The server definition files support the definition of server groups that
 also have a nickname.
 
-Typical use cases for the **secure-server-access** package are test programs
+Typical use cases for the **easy-server** package are test programs
 running end-to-end tests against real servers, or command line clients that
 access servers or services.
 
@@ -68,11 +68,11 @@ Documentation and change log
 License
 -------
 
-The **secure-server-access** project is provided under the
-`Apache Software License 2.0 <https://raw.githubusercontent.com/andy-maier/secure-server-access/master/LICENSE>`_.
+The **easy-server** project is provided under the
+`Apache Software License 2.0 <https://raw.githubusercontent.com/andy-maier/easy-server/master/LICENSE>`_.
 
 
 .. # Links:
 
-.. _`Documentation`: https://secure-server-access.readthedocs.io/en/latest/
-.. _`Change log`: https://secure-server-access.readthedocs.io/en/latest/changes.html
+.. _`Documentation`: https://easy-server.readthedocs.io/en/latest/
+.. _`Change log`: https://easy-server.readthedocs.io/en/latest/changes.html

@@ -1,5 +1,5 @@
-Design information for secure-server-access project
-===================================================
+Design information for easy-server project
+==========================================
 
 This directory contains loosely organized files in markdown, text or RST format
 containing design information on the project.

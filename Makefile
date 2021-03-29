@@ -1,4 +1,4 @@
-# Makefile for the secure-server-access project.
+# Makefile for the easy-server project.
 #
 # Supported OS platforms for this Makefile:
 #     Linux (any distro)
@@ -133,11 +133,11 @@ else
 endif
 
 # Name of this project
-project_name := secure-server-access
+project_name := easy-server
 
 # Name of this Python package
-package_name := secure_server_access
-package_name_tar := secure_server_access
+package_name := easy_server
+package_name_tar := easy_server
 
 # Directory for coverage html output. Not used right now. If used, must be in
 # sync with the one in .coveragerc.

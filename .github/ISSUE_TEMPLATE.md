@@ -6,6 +6,6 @@
 
 ### Execution environment
 
-* secure-server-access version:
+* easy-server version:
 * Python version:
 * Operating System (type+version):

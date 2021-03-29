@@ -8,7 +8,7 @@ import os
 from pprint import pprint
 import easy_vault
 
-from secure_server_access import VaultFile, VaultFileException
+from easy_server import VaultFile, VaultFileException
 
 
 def main():
