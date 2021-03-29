@@ -137,7 +137,7 @@ project_name := easy-server
 
 # Name of this Python package
 package_name := easy_server
-package_name_tar := easy_server
+package_name_tar := easy-server
 
 # Directory for coverage html output. Not used right now. If used, must be in
 # sync with the one in .coveragerc.
