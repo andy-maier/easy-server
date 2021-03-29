@@ -147,7 +147,7 @@ TESTCASES_SERVER_DEFINITION_INIT = [
         None, None, True
     ),
     (
-        "Omitted required parameter: user_defined",
+        "Omitted optional parameter: user_defined",
         dict(
             init_args=(),
             init_kwargs=dict(
@@ -158,9 +158,15 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                     'access_via': 'my vpn',
                 },
             ),
-            exp_attrs=None,
+            exp_attrs={
+                'nickname': 'myserver',
+                'description': 'my description',
+                'contact_name': 'my contact',
+                'access_via': 'my vpn',
+                'user_defined': None,
+            },
         ),
-        KeyError, None, True
+        None, None, True
     ),
 ]
 

@@ -1,14 +1,13 @@
----
 # Example vault file for secure-server-access package.
 
 secrets:
 
   myserver1:
     host: "10.11.12.13"
-    username: myusername
-    password: mypassword
+    username: myuser1
+    password: mypass1
 
   myserver2:
-    host: "9.11.12.13"
-    username: myusername
-    password: mypassword
+    host: "9.10.11.12"
+    username: myuser2
+    password: mypass2

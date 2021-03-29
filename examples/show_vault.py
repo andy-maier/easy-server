@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Test script that shows the content of a vault file.
+Example script that shows the content of a vault file.
 """
 
 import sys
@@ -19,11 +19,6 @@ def main():
         sys.exit(2)
 
     vault_file = sys.argv[1]
-
-    # if not os.path.exists(vault_file):
-    #     print("Error: Vault file does not exist: {fn}".
-    #           format(fn=vault_file))
-    #     return 1
 
     try:
         vault = VaultFile(vault_file)
