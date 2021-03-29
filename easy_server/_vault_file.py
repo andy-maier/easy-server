@@ -64,9 +64,14 @@ class VaultFile(object):
     The vault file may be in clear text form (i.e. unencrypted) or
     encrypted. The file remains unchanged in all cases, and only the data read
     from it is decrypted upon use if it was encrypted.
+
+    Typical use in client programs would be to use the keyring and to specify
+    no password (the default). Typical use in test programs running in a CI/CD
+    system would be to specify a password (from the CI/CD system's secrets)
+    and not to use the keyring.
     """
 
-    def __init__(self, filepath, password=None):
+    def __init__(self, filepath, password=None, use_keyring=True):
         """
         Parameters:
 
@@ -74,8 +79,12 @@ class VaultFile(object):
             Path name of the vault file.
 
           password (:term:`unicode string`):
-            Password for decrypting the vault file. If not provided, the vault
-            file must be in clear text form (i.e. unencrypted).
+            Password for decrypting the vault file if needed. May be `None`
+            only if the keyring is used.
+
+          use_keyring (bool):
+            Use the keyring (`True`) or not (`False`). This applies to both
+            retrieving and storing the password.
 
         Raises:
           VaultFileOpenError: Error with opening the vault file
@@ -83,7 +92,7 @@ class VaultFile(object):
           VaultFileFormatError: Invalid vault file format
         """
         self._filepath = filepath
-        self._vault_obj = _load_vault_file(filepath, password)
+        self._vault_obj = _load_vault_file(filepath, password, use_keyring)
 
         # The following attributes are for faster access
         self._secrets = self._vault_obj['secrets']
@@ -148,7 +157,7 @@ class VaultFile(object):
         return deepcopy(secrets_dict)
 
 
-def _load_vault_file(filepath, password=None):
+def _load_vault_file(filepath, password, use_keyring):
     """
     Load the vault file and return its complete content.
 
@@ -160,8 +169,12 @@ def _load_vault_file(filepath, password=None):
         Path name of vault file.
 
       password (:term:`unicode string`):
-        Password for decrypting the vault file. If `None`, the vault file must
-        be in clear text form (i.e. unencrypted).
+        Password for decrypting the vault file if needed. May be `None` only
+        if the keyring is used.
+
+      use_keyring (bool):
+        Use the keyring (`True`) or not (`False`). This applies to both
+        retrieving and storing the password.
 
     Returns:
       dict: Python dict representing the vault file content.
@@ -172,7 +185,8 @@ def _load_vault_file(filepath, password=None):
       VaultFileFormatError: Invalid vault file format
     """
 
-    password = easy_vault.get_password(filepath)
+    if password is None:
+        password = easy_vault.get_password(filepath, use_keyring=use_keyring)
 
     vault = easy_vault.EasyVault(filepath, password)
     try:
@@ -190,7 +204,7 @@ def _load_vault_file(filepath, password=None):
         new_exc.__cause__ = None
         raise new_exc  # VaultFileFormatError
 
-    easy_vault.set_password(filepath, password)
+    easy_vault.set_password(filepath, password, use_keyring=use_keyring)
 
     # Validate the data object using JSON schema
     try:
