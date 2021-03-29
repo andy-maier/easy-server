@@ -166,8 +166,7 @@ shown in the previous section:
         password: mypass2
 
 The vault file must have one top-level property named ``secrets``. Below
-that are properties that represent the servers or services. For the sake of
-simplicity, we only talk about servers from now on.
+that are properties that represent the servers (or services).
 
 The server items are identified by nicknames (``myserver1`` and ``myserver2``
 in the example above) and can have an arbitrary user-defined set of properties
@@ -191,57 +190,70 @@ Here is another example that defines the server secrets as URL and API key
         url: https://9.10.11.12/myservice
         api_key: mykey2
 
+Because the server definition file has user-defined properties for each
+server entry, and the structure of the server entries in the vault file
+is user-defined, there is a choice of which information is put into which
+file. For example, the host property from the previous examples could have
+been moved into the server definition file as a user-defined property,
+since usually it is not really a secret.
+
 The vault file can be encrypted or decrypted using the ``easy-vault`` command
 that is part of the
 `easy-vault package <https://easy-vault.readthedocs.io/en/latest/>`_
 
 The vault file can be in the encrypted state or in clear text when the
-**secure-server-access** library functions are accessing it.
+**secure-server-access** library functions are accessing it. It is recommended
+to always have it in the encrypted state and to decrypt it only for the period
+of time while it is edited.
 
 
-.. _`Accessing the secrets in a program`:
+.. _`Example usage`:
 
-Accessing the secrets in a program
-----------------------------------
+Example usage
+-------------
 
-The following Python code demonstrates the use case of a command line utility
-that prompts for the vault password if needed and stores that password in the
-keyring facility of the local system for future use, using the
-`keyring Python package`_:
+This section describes how a program would use the example server definition
+file and vault file from the previous sections to get to all the information
+that is needed to access the server.
 
 .. code-block:: python
 
-    import getpass
-    import keyring
-    from secure_server_access import Vault, NotFound
+    from secure_server_access import VaultFile, VaultFileException, \
+        ServerDefinitionFile, ServerDefinitionFileException
 
-    vault_file = 'vault.yml'        # Path name of Ansible vault file
-    server_nick = 'myserver1'       # Nickname of server in Ansible vault file
+    # Some parameters that typically would be inout to the program:
+    vault_file = 'examples/vault.yml'        # Path name of vault file
+    srvdef_file = 'examples/srvdef.yml'      # Path name of server definition file
+    nickname = 'mygroup1'                    # Nickname of server or group
 
-    keyring_service = 'myprogram'   # Some unique service name within your keyring
-    keyring_username = 'vault'
-
-    password = keyring.get_password(keyring_service, keyring_username)
-    if password is None:
-        password = getpass.getpass("Password for Ansible vault file {fn}:".
-                                   format(fn=vault_file))
-        keyring.set_password(keyring_service, keyring_username, password)
-
-    # Open the vault and access the entry for a server
-    vault = Vault(vault_file, password)
     try:
-        vault_server = vault.get_server(server_nick)
-    except NotFound as exc:
-        # Handle server nickname not found
+        sdf = ServerDefinitionFile(srvdef_file)
+    except ServerDefinitionFileException as exc:
+        print("Error: {}".format(exc))
+        return 1
+
+    sd_list = sdf.list_servers(nickname)
+
+    try:
+        vault = VaultFile(vault_file)
+    except VaultFileException as exc:
+        print("Error: {}".format(exc))
+        return 1
+
+    for sd in sd_list:
+        nick = sd.nickname
+        secrets = vault.get_secrets(nick)
+
+        host=secrets['host'],
+        username=secrets['username']
+        password=secrets['password']
+
+        print("Server {n}: host={h}, username={u}, password=********".
+              format(n=nick, h=host, u=username))
+
+        # A fictitious session class
+        session = MySession(host, username, password)
         . . .
-
-    session = MySession(  # A fictitious session class
-      host=vault_server['host'],
-      username=vault_server['username'],
-      password=vault_server['password'])
-
-    # Do something in the server session
-    . . .
 
 The use case where a Python test program using the `pytest Python package`_
 needs access to servers is best handled by using the `Pytest fixture`_ provided

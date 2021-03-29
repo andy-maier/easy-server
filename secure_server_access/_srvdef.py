@@ -23,7 +23,7 @@ class ServerDefinition(object):
     """
     Represents a single server definition from a server definition file.
 
-    Example for a server definition in a server definition file:
+    Example for a server definition item in a server definition file:
 
     .. code-block:: yaml
 
@@ -32,11 +32,7 @@ class ServerDefinition(object):
           contact_name: "John Doe"
           access_via: "VPN to dev network"
           user_defined:                         # user-defined part
-            host: "10.11.12.13"
-            username: myusername
-            password: mypassword
-            stuff:
-              - morestuff1
+            stuff: morestuff
     """
 
     def __init__(self, nickname, server_dict):
@@ -44,7 +40,7 @@ class ServerDefinition(object):
         self._description = server_dict['description']
         self._contact_name = server_dict.get('contact_name', None)
         self._access_via = server_dict.get('access_via', None)
-        self._user_defined = server_dict['user_defined']
+        self._user_defined = server_dict.get('user_defined', None)
 
     def __repr__(self):
         return "ServerDefinition(" \

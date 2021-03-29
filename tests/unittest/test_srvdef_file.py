@@ -27,7 +27,7 @@ from secure_server_access._srvdef_file import _load_server_definition_file
 from ..utils.simplified_test_function import simplified_test_function
 
 
-TEST_SDF_FILEPATH = 'examples/ssa.yml'
+TEST_SDF_FILEPATH = 'examples/srvdef.yml'
 
 TESTCASES_SDF_INIT = [
 
