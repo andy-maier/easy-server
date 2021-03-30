@@ -28,7 +28,7 @@ __all__ = ['VaultFile']
 # JSON schema describing the structure of the vault files
 VAULT_FILE_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "JSON schema for vault files used by the easy-server package",
+    "title": "JSON schema for easy-server vault files",
     "definitions": {},
     "type": "object",
     "required": [
@@ -57,7 +57,7 @@ class VaultFile(object):
     A vault file that specifies the sensitive portion of server definitions,
     i.e. the secrets for accessing the servers.
 
-    An object of this class is tied to a single "easy-vault" file.
+    An object of this class is tied to a single vault file.
 
     For a description of the file format, see section :ref:`Vault files`.
 

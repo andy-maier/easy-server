@@ -28,6 +28,7 @@ from ..utils.simplified_test_function import simplified_test_function
 
 
 TEST_SDF_FILEPATH = 'examples/srvdef.yml'
+TEST_SDF_FILEPATH_ABS = os.path.abspath(TEST_SDF_FILEPATH)
 
 TESTCASES_SDF_INIT = [
 
@@ -51,7 +52,7 @@ TESTCASES_SDF_INIT = [
             ),
             init_kwargs=dict(),
             exp_attrs={
-                'filepath': TEST_SDF_FILEPATH,
+                'filepath': TEST_SDF_FILEPATH_ABS,
             },
         ),
         None, None, True
@@ -64,7 +65,7 @@ TESTCASES_SDF_INIT = [
                 filepath=TEST_SDF_FILEPATH,
             ),
             exp_attrs={
-                'filepath': TEST_SDF_FILEPATH,
+                'filepath': TEST_SDF_FILEPATH_ABS,
             },
         ),
         None, None, True
@@ -371,6 +372,7 @@ TESTCASES_SDF_LOAD = [
                 'servers': {},
                 'server_groups': {},
                 'default': None,
+                'vault_file': None,
             },
         ),
         None, None, True
@@ -395,6 +397,7 @@ TESTCASES_SDF_LOAD = [
                 },
                 'server_groups': {},
                 'default': 'srv1',
+                'vault_file': None,
             },
         ),
         None, None, True
@@ -429,6 +432,7 @@ TESTCASES_SDF_LOAD = [
                     },
                 },
                 'default': 'grp1',
+                'vault_file': None,
             },
         ),
         None, None, True

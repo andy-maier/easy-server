@@ -15,12 +15,14 @@ Support for server definition files.
 """
 
 from __future__ import absolute_import, print_function
+import os
 import yaml
 import jsonschema
 
 from ._exceptions import ServerDefinitionFileOpenError, \
     ServerDefinitionFileFormatError
 from ._srvdef import ServerDefinition
+from ._vault_file import VaultFile
 
 __all__ = ['ServerDefinitionFile']
 
@@ -28,7 +30,7 @@ __all__ = ['ServerDefinitionFile']
 # JSON schema describing the structure of the server definition files
 SERVER_DEFINITION_FILE_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "JSON schema for server definition files",
+    "title": "JSON schema for easy-server server definition files",
     "definitions": {},
     "type": "object",
     "required": [
@@ -36,6 +38,12 @@ SERVER_DEFINITION_FILE_SCHEMA = {
     ],
     "additionalProperties": False,
     "properties": {
+        "vault_file": {
+            "type": "string",
+            "description":
+                "Path name of vault file. Relative path names are relative to "
+                "the directory of the server definition file",
+        },
         "servers": {
             "type": "object",
             "description": "The servers in the server definition file",
@@ -133,24 +141,57 @@ class ServerDefinitionFile(object):
 
     An object of this class is tied to a single server definition file.
 
+    The server definition file is loaded when this object is initialized. If
+    the server definition file specifies a vault file, the vault file is also
+    loaded.
+
     For a description of the file format, see section
     :ref:`Server definition files`.
     """
 
-    def __init__(self, filepath):
+    def __init__(
+            self, filepath, password=None, use_keyring=True, verbose=False):
         """
         Parameters:
 
           filepath (:term:`unicode string`):
-            Path name of the server definition file.
+            Path name of the server definition file. Relative path names are
+            relative to the current directory.
+
+          password (:term:`unicode string`):
+            Password for decrypting the vault file if needed. May be `None`
+            only if the keyring is used.
+
+          use_keyring (bool):
+            Use the keyring (`True`) or not (`False`) for the password of the
+            vault file. This applies to both retrieving and storing the
+            password.
+
+          verbose (bool):
+            Print additional messages. Note that the password prompt (if needed)
+            is displayed regardless of verbose mode.
 
         Raises:
           ServerDefinitionFileOpenError: Error opening server definition file
           ServerDefinitionFileFormatError: Invalid server definition file
             format
+          VaultFileOpenError: Error with opening the vault file
+          VaultFileDecryptError: Error with decrypting the vault file
+          VaultFileFormatError: Invalid vault file format
         """
-        self._filepath = filepath
+        self._filepath = os.path.abspath(filepath)
         self._data = _load_server_definition_file(filepath)
+
+        self._vault_file = self._data['vault_file']
+        if self._vault_file:
+            if not os.path.isabs(self._vault_file):
+                self._vault_file = os.path.join(
+                    os.path.dirname(self._filepath), self._vault_file)
+            self._vault = VaultFile(
+                self._vault_file, password=password, use_keyring=use_keyring,
+                verbose=verbose)
+        else:
+            self._vault = None
 
         # The following attributes are for faster access
         self._servers = self._data['servers']
@@ -160,9 +201,21 @@ class ServerDefinitionFile(object):
     @property
     def filepath(self):
         """
-        :term:`unicode string`: Path name of the server definition file.
+        :term:`unicode string`: Absolute path name of the
+        server definition file.
         """
         return self._filepath
+
+    @property
+    def vault_file(self):
+        """
+        :term:`unicode string`: Absolute path name of the vault file specified
+        in the server definition file, or `None` if no vault file was specified.
+
+        Vault files specified with a relative path name are relative to the
+        directory of the server definition file.
+        """
+        return self._vault_file
 
     def get_server(self, nickname):
         """
@@ -187,7 +240,14 @@ class ServerDefinitionFile(object):
                 format(nickname, self._filepath))
             new_exc.__cause__ = None
             raise new_exc  # KeyError
-        return ServerDefinition(nickname, server_dict)
+        if self._vault:
+            try:
+                secrets_dict = self._vault.get_secrets(nickname)
+            except KeyError:
+                secrets_dict = None
+        else:
+            secrets_dict = None
+        return ServerDefinition(nickname, server_dict, secrets_dict)
 
     def list_servers(self, nickname):
         """
@@ -304,6 +364,9 @@ def _load_server_definition_file(filepath):
 
     if 'default' not in data:
         data['default'] = None
+
+    if 'vault_file' not in data:
+        data['vault_file'] = None
 
     # Check dependencies in the file
 
