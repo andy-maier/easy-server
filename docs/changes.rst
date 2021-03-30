@@ -30,6 +30,12 @@ Released: not yet
 
 **Enhancements:**
 
+* Integrated vault access into server definition file. The server definition
+  files can now optionally specify the path name of a vault file. If specified,
+  the vault file is loaded as well and the secrets for a server defined in
+  the vault file are available in the ServerDefinition object as a new `secrets`
+  property. (issue #20)
+
 **Cleanup:**
 
 **Known issues:**

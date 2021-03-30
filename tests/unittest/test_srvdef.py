@@ -47,6 +47,9 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                     'access_via': 'my vpn',
                     'user_defined': {'stuff': 42},
                 },
+                {
+                    'host': 'myhost',
+                },
             ),
             init_kwargs=dict(),
             exp_attrs={
@@ -55,6 +58,7 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                 'contact_name': 'my contact',
                 'access_via': 'my vpn',
                 'user_defined': {'stuff': 42},
+                'secrets': {'host': 'myhost'},
             },
         ),
         None, None, True
@@ -71,6 +75,9 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                     'access_via': 'my vpn',
                     'user_defined': {'stuff': 42},
                 },
+                secrets_dict={
+                    'host': 'myhost',
+                },
             ),
             exp_attrs={
                 'nickname': 'myserver',
@@ -78,6 +85,7 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                 'contact_name': 'my contact',
                 'access_via': 'my vpn',
                 'user_defined': {'stuff': 42},
+                'secrets': {'host': 'myhost'},
             },
         ),
         None, None, True
@@ -95,6 +103,9 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                     'access_via': 'my vpn',
                     'user_defined': {'stuff': 42},
                 },
+                secrets_dict={
+                    'host': 'myhost',
+                },
             ),
             exp_attrs=None,
         ),
@@ -111,7 +122,9 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                     'access_via': 'my vpn',
                     'user_defined': {'stuff': 42},
                 },
-
+                secrets_dict={
+                    'host': 'myhost',
+                },
             ),
             exp_attrs={
                 'nickname': 'myserver',
@@ -119,6 +132,7 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                 'contact_name': None,
                 'access_via': 'my vpn',
                 'user_defined': {'stuff': 42},
+                'secrets': {'host': 'myhost'},
             },
         ),
         None, None, True
@@ -134,7 +148,9 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                     'contact_name': 'my contact',
                     'user_defined': {'stuff': 42},
                 },
-
+                secrets_dict={
+                    'host': 'myhost',
+                },
             ),
             exp_attrs={
                 'nickname': 'myserver',
@@ -142,6 +158,7 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                 'contact_name': 'my contact',
                 'access_via': None,
                 'user_defined': {'stuff': 42},
+                'secrets': {'host': 'myhost'},
             },
         ),
         None, None, True
@@ -157,6 +174,9 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                     'contact_name': 'my contact',
                     'access_via': 'my vpn',
                 },
+                secrets_dict={
+                    'host': 'myhost',
+                },
             ),
             exp_attrs={
                 'nickname': 'myserver',
@@ -164,6 +184,32 @@ TESTCASES_SERVER_DEFINITION_INIT = [
                 'contact_name': 'my contact',
                 'access_via': 'my vpn',
                 'user_defined': None,
+                'secrets': {'host': 'myhost'},
+            },
+        ),
+        None, None, True
+    ),
+    (
+        "No secrets (None)",
+        dict(
+            init_args=(),
+            init_kwargs=dict(
+                nickname='myserver',
+                server_dict={
+                    'description': 'my description',
+                    'contact_name': 'my contact',
+                    'access_via': 'my vpn',
+                    'user_defined': {'stuff': 42},
+                },
+                secrets_dict=None,
+            ),
+            exp_attrs={
+                'nickname': 'myserver',
+                'description': 'my description',
+                'contact_name': 'my contact',
+                'access_via': 'my vpn',
+                'user_defined': {'stuff': 42},
+                'secrets': None,
             },
         ),
         None, None, True
@@ -223,6 +269,9 @@ TESTCASES_SERVER_DEFINITION_REPR = [
                     'access_via': 'my vpn',
                     'user_defined': {'stuff': 42},
                 },
+                secrets_dict={
+                    'host': 'myhost',
+                },
             ),
         ),
         None, None, True
@@ -255,3 +304,4 @@ def test_ServerDefinition_repr(testcase, init_kwargs):
     assert "contact_name=" in repr_str
     assert "access_via=" in repr_str
     assert "user_defined=" in repr_str
+    assert "secrets=" in repr_str
