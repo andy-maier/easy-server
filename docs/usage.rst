@@ -43,30 +43,29 @@ prerequisite packages into the active Python environment:
     $ pip install easy-server
 
 
-.. _`Server definition files`:
+.. _`Server files`:
 
-Server definition files
+Server files
 -----------------------
 
-A *server definition file* contains the openly accessible portion of the server
-definitions and optionally references a :ref:`vault file <vault files>` that
-specifies the secret portion of the server definitions.
+A *server file* contains the openly accessible portion of the servers and
+optionally references a :ref:`vault file <vault files>` that specifies the
+secret portion of the servers.
 
-The server definition file must be in YAML format and defines servers, server
-groups and a default server or group. The servers and server groups are
-identified using user-defined nicknames and the file stores some basic
-information about them.
+The server file must be in YAML format and defines servers, server groups and
+a default server or group. The servers and server groups are identified using
+user-defined nicknames and the file stores some basic information about them.
 
 The vault file is optional and its path name is specified with a property in
-the server definition file. Corresponding server items in these two files
-have the same nicknames.
+the server file. Corresponding server items in these two files have the same
+nicknames.
 
-Here is an example server definition file. The format of the file has some
-predefined fixed data about the servers and groups, and additional user-defined
-data for servers and groups.
+Here is an example server file. The format of the file has some predefined
+fixed data about the servers and groups, and additional user-defined data for
+servers and groups.
 
-Here is a complete working example of a server definition file that defines
-two servers and one server group:
+Here is a complete working example of a server file that defines two servers
+and one server group:
 
 .. code-block:: yaml
 
@@ -104,19 +103,18 @@ two servers and one server group:
     default: mygroup1                     # Fixed top-level key: default server or group
 
 In the example above, ``myserver1``, ``myserver2``, and ``mygroup1`` are
-nicknames of the respective server or server group definitions. These nicknames
-are used when servers or groups are put into a server group in that file, or
-when they are specified as a default in that file, or when they are used
-in functions of the **easy-server** library.
-See :class:`easy_server.ServerDefinitionFile` for details.
+nicknames of the respective server or server groups. These nicknames are used
+when servers or groups are put into a server group in that file, or when they
+are specified as a default in that file, or when they are used in functions of
+the **easy-server** package. See :class:`easy_server.ServerFile` for details.
 
 These nicknames are case sensitive and their allowable character set are
 alphenumeric characters and the underscore character, i.e. ``A-Z``, ``a-z``,
 ``0-9``, and ``_``.
 
 The value of the optional ``vault_file`` top-level property is the path name
-of the vault file that belongs to this server definition file. Relative path
-names are relative to the directory of the server definition file.
+of the vault file that belongs to this server file. Relative path names are
+relative to the directory of the server file.
 
 The value of the ``servers`` top-level property is an object (=dictionary) that
 has one property for each server that is defined. The property name is the
@@ -154,8 +152,8 @@ A particular server or server group may be put into more than one server group.
 Vault files
 -----------
 
-A *vault file* contains the sensitive portion of the server definitions,
-such as passwords or API keys.
+A *vault file* contains the sensitive portion of the servers, such as passwords
+or API keys.
 
 The vault file must be an "easy-vault" file and can be encrypted and decrypted
 using the ``easy-vault`` command provided by the
@@ -165,8 +163,8 @@ The "easy-vault" files must be in YAML syntax and must follow the YAML schema
 described in this section.
 
 Here is a complete working example of a vault file that defines host, username
-and password for the servers from the example server definition file shown in
-the previous section:
+and password for the servers from the example server file shown in the previous
+section:
 
 .. code-block:: yaml
 
@@ -209,11 +207,11 @@ for the services, in this case):
         url: https://9.10.11.12/myservice
         api_key: mykey2
 
-Because the server definition file has user-defined properties for each
+Because the server file has user-defined properties for each
 server entry, and the structure of the server entries in the vault file
 is user-defined, there is a choice of which information is put into which
 file. For example, the host property from the previous examples could have
-been moved into the server definition file as a user-defined property,
+been moved into the server file as a user-defined property,
 since usually it is not really a secret.
 
 The vault file can be encrypted or decrypted using the ``easy-vault`` command
@@ -231,7 +229,7 @@ of time while it is edited.
 Example usage
 -------------
 
-The following code snippet shows how a server definition file and a vault file
+The following code snippet shows how a server file and a vault file
 is used to get to all the information that is needed to access a server
 or in this example, the servers in a server group:
 
@@ -241,12 +239,12 @@ or in this example, the servers in a server group:
 
     # Some parameters that typically would be input to the program:
     vault_file = 'examples/vault.yml'        # Path name of vault file
-    srvdef_file = 'examples/srvdef.yml'      # Path name of server definition file
+    server_file = 'examples/server.yml'      # Path name of server file
     nickname = 'mygroup1'                    # Nickname of server or group
 
     try:
-        sdf = easy_server.ServerDefinitionFile(srvdef_file)
-    except easy_server.ServerDefinitionFileException as exc:
+        sdf = easy_server.ServerFile(server_file)
+    except easy_server.ServerFileException as exc:
         print("Error: {}".format(exc))
         return 1
 

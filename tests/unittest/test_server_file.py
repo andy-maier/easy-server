@@ -11,7 +11,7 @@
 # limitations under the License.
 
 """
-Test the _srvdeffile.py module.
+Test the _server_file.py module.
 """
 
 from __future__ import absolute_import, print_function
@@ -19,27 +19,27 @@ import os
 import pytest
 from testfixtures import TempDirectory
 import six
-from easy_server import ServerDefinitionFile, \
-    ServerDefinitionFileFormatError, ServerDefinitionFileOpenError
+from easy_server import ServerFile, \
+    ServerFileFormatError, ServerFileOpenError
 # White box testing: We test an internal function
-from easy_server._srvdef_file import _load_server_definition_file
+from easy_server._server_file import _load_server_file
 
 from ..utils.simplified_test_function import simplified_test_function
 
 
-TEST_SDF_FILEPATH = 'examples/srvdef.yml'
+TEST_SDF_FILEPATH = 'examples/server.yml'
 TEST_SDF_FILEPATH_ABS = os.path.abspath(TEST_SDF_FILEPATH)
 
 TESTCASES_SDF_INIT = [
 
-    # Testcases for ServerDefinitionFile.__init__()
+    # Testcases for ServerFile.__init__()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * init_args: Tuple of positional arguments to ServerDefinitionFile().
-    #   * init_kwargs: Dict of keyword arguments to ServerDefinitionFile().
-    #   * exp_attrs: Dict with expected ServerDefinitionFile attributes.
+    #   * init_args: Tuple of positional arguments to ServerFile().
+    #   * init_kwargs: Dict of keyword arguments to ServerFile().
+    #   * exp_attrs: Dict with expected ServerFile attributes.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -88,7 +88,7 @@ TESTCASES_SDF_INIT = [
             ),
             exp_attrs=None,
         ),
-        (ServerDefinitionFileOpenError, "Cannot open server definition file"),
+        (ServerFileOpenError, "Cannot open server file"),
         None, True
     ),
 ]
@@ -100,11 +100,11 @@ TESTCASES_SDF_INIT = [
 @simplified_test_function
 def test_SDF_init(testcase, init_args, init_kwargs, exp_attrs):
     """
-    Test function for ServerDefinitionFile.__init__()
+    Test function for ServerFile.__init__()
     """
 
     # The code to be tested
-    act_obj = ServerDefinitionFile(*init_args, **init_kwargs)
+    act_obj = ServerFile(*init_args, **init_kwargs)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -115,7 +115,7 @@ def test_SDF_init(testcase, init_args, init_kwargs, exp_attrs):
     for attr_name in exp_attrs:
         exp_attr_value = exp_attrs[attr_name]
         assert hasattr(act_obj, attr_name), \
-            "Missing attribute {0!r} in returned ServerDefinitionFile object". \
+            "Missing attribute {0!r} in returned ServerFile object". \
             format(attr_name)
         act_attr_value = getattr(act_obj, attr_name)
         assert act_attr_value == exp_attr_value, \
@@ -125,13 +125,13 @@ def test_SDF_init(testcase, init_args, init_kwargs, exp_attrs):
 
 TESTCASES_SDF_LOAD = [
 
-    # Testcases for ServerDefinitionFile._load_server_definition_file()
+    # Testcases for ServerFile._load_server_file()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * sdf_yaml: Content of server definition file.
-    #   * exp_data: Expected result of _load_server_definition_file()
+    #   * sdf_yaml: Content of server file.
+    #   * exp_data: Expected result of _load_server_file()
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -143,7 +143,7 @@ TESTCASES_SDF_LOAD = [
             sdf_yaml="",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on top-level element.* is not of type 'object'"),
         None, True
     ),
@@ -155,7 +155,7 @@ TESTCASES_SDF_LOAD = [
                      "  bar:\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError, "Invalid YAML syntax"),
+        (ServerFileFormatError, "Invalid YAML syntax"),
         None, True
     ),
     (
@@ -165,7 +165,7 @@ TESTCASES_SDF_LOAD = [
                      "- server_groups: {}\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on top-level element: .* is not of type 'object'"),
         None, True
     ),
@@ -175,7 +175,7 @@ TESTCASES_SDF_LOAD = [
             sdf_yaml="server_groups: {}\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on top-level element: 'servers' is a required "
          "property"),
         None, True
@@ -187,7 +187,7 @@ TESTCASES_SDF_LOAD = [
                      "  - foo\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'servers': .* is not of type 'object'"),
         None, True
     ),
@@ -197,7 +197,7 @@ TESTCASES_SDF_LOAD = [
             sdf_yaml="servers: bla\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'servers': .* is not of type 'object'"),
         None, True
     ),
@@ -208,7 +208,7 @@ TESTCASES_SDF_LOAD = [
                      "server_groups: []\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'server_groups': .* is not of type "
          "'object'"),
         None, True
@@ -220,7 +220,7 @@ TESTCASES_SDF_LOAD = [
                      "server_groups: bla\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'server_groups': .* is not of type "
          "'object'"),
         None, True
@@ -233,7 +233,7 @@ TESTCASES_SDF_LOAD = [
                      "  grp1: invalid\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'server_groups.grp1': .* is not of type "
          "'object'"),
         None, True
@@ -247,7 +247,7 @@ TESTCASES_SDF_LOAD = [
                      "    members: []\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'server_groups.grp1': 'description' is "
          "a required property"),
         None, True
@@ -262,7 +262,7 @@ TESTCASES_SDF_LOAD = [
                      "    members: []\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'server_groups.grp1.description': "
          ".* is not of type 'string'"),
         None, True
@@ -276,7 +276,7 @@ TESTCASES_SDF_LOAD = [
                      "    description: desc1\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'server_groups.grp1': 'members' is "
          "a required property"),
         None, True
@@ -291,7 +291,7 @@ TESTCASES_SDF_LOAD = [
                      "    members: invalid\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'server_groups.grp1.members': "
          ".* is not of type 'array'"),
         None, True
@@ -307,7 +307,7 @@ TESTCASES_SDF_LOAD = [
                      "      - {}\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'server_groups.grp1.members.0': "
          ".* is not of type 'string'"),
         None, True
@@ -320,7 +320,7 @@ TESTCASES_SDF_LOAD = [
                      "default: null\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Validation failed on element 'default': "
          "None is not of type 'string'"),
         None, True
@@ -338,7 +338,7 @@ TESTCASES_SDF_LOAD = [
                      "      - srv1\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Nickname 'srv1' in server group 'grp1' not found"),
         None, True
     ),
@@ -358,12 +358,12 @@ TESTCASES_SDF_LOAD = [
                      "default: srv\n",
             exp_data=None,
         ),
-        (ServerDefinitionFileFormatError,
+        (ServerFileFormatError,
          "Default nickname 'srv' not found"),
         None, True
     ),
 
-    # Valid simple server definition files
+    # Valid simple server files
     (
         "Valid file with no servers and server_group+default omitted",
         dict(
@@ -446,12 +446,12 @@ TESTCASES_SDF_LOAD = [
 @simplified_test_function
 def test_SDF_load(testcase, sdf_yaml, exp_data):
     """
-    Test function for ServerDefinitionFile._load_server_definition_file()
+    Test function for ServerFile._load_server_file()
     """
 
     with TempDirectory() as tmp_dir:
 
-        # Create the server definition file
+        # Create the server file
         filename = 'tmp_sdf.yaml'
         filepath = os.path.join(tmp_dir.path, filename)
         if isinstance(sdf_yaml, six.text_type):
@@ -459,7 +459,7 @@ def test_SDF_load(testcase, sdf_yaml, exp_data):
         tmp_dir.write(filename, sdf_yaml)
 
         # The code to be tested
-        act_data = _load_server_definition_file(filepath)
+        act_data = _load_server_file(filepath)
 
         # Ensure that exceptions raised in the remainder of this function
         # are not mistaken as expected exceptions
@@ -472,14 +472,14 @@ def test_SDF_load(testcase, sdf_yaml, exp_data):
 
 TESTCASES_SDF_GET_SERVER = [
 
-    # Testcases for ServerDefinitionFile.get_server()
+    # Testcases for ServerFile.get_server()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * sdf_yaml: Content of server definition file.
+    #   * sdf_yaml: Content of server file.
     #   * nick: nickname input parameter for get_server().
-    #   * exp_attrs: Dict with expected attributes of ServerDefinition result
+    #   * exp_attrs: Dict with expected attributes of Server result
     #     of get_server(). Keys: attribute names; values: attribute values.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
@@ -580,19 +580,19 @@ TESTCASES_SDF_GET_SERVER = [
 @simplified_test_function
 def test_SDF_get_server(testcase, sdf_yaml, nick, exp_attrs):
     """
-    Test function for ServerDefinitionFile.get_server()
+    Test function for ServerFile.get_server()
     """
 
     with TempDirectory() as tmp_dir:
 
-        # Create the server definition file
+        # Create the server file
         filename = 'tmp_sdf.yaml'
         filepath = os.path.join(tmp_dir.path, filename)
         if isinstance(sdf_yaml, six.text_type):
             sdf_yaml = sdf_yaml.encode('utf-8')
         tmp_dir.write(filename, sdf_yaml)
 
-        sdf = ServerDefinitionFile(filepath)
+        sdf = ServerFile(filepath)
 
         # The code to be tested
         act_srv = sdf.get_server(nick)
@@ -609,15 +609,15 @@ def test_SDF_get_server(testcase, sdf_yaml, nick, exp_attrs):
 
 TESTCASES_SDF_LIST_SERVERS = [
 
-    # Testcases for ServerDefinitionFile.list_servers()
+    # Testcases for ServerFile.list_servers()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * sdf_yaml: Content of server definition file.
+    #   * sdf_yaml: Content of server file.
     #   * nick: nickname input parameter for list_servers().
     #   * exp_srvs_attrs: List of dicts with expected attributes of
-    #     ServerDefinition objects in the result of list_servers().
+    #     Server objects in the result of list_servers().
     #     Keys: attr names; values: attr values.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
@@ -851,19 +851,19 @@ TESTCASES_SDF_LIST_SERVERS = [
 @simplified_test_function
 def test_SDF_list_servers(testcase, sdf_yaml, nick, exp_srvs_attrs):
     """
-    Test function for ServerDefinitionFile.list_servers()
+    Test function for ServerFile.list_servers()
     """
 
     with TempDirectory() as tmp_dir:
 
-        # Create the server definition file
+        # Create the server file
         filename = 'tmp_sdf.yaml'
         filepath = os.path.join(tmp_dir.path, filename)
         if isinstance(sdf_yaml, six.text_type):
             sdf_yaml = sdf_yaml.encode('utf-8')
         tmp_dir.write(filename, sdf_yaml)
 
-        sdf = ServerDefinitionFile(filepath)
+        sdf = ServerFile(filepath)
 
         # The code to be tested
         act_sds = sdf.list_servers(nick)
@@ -887,14 +887,14 @@ def test_SDF_list_servers(testcase, sdf_yaml, nick, exp_srvs_attrs):
 
 TESTCASES_SDF_LIST_DEFAULT_SERVERS = [
 
-    # Testcases for ServerDefinitionFile.list_default_servers()
+    # Testcases for ServerFile.list_default_servers()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * sdf_yaml: Content of server definition file.
+    #   * sdf_yaml: Content of server file.
     #   * exp_srvs_attrs: List of dicts with expected attributes of
-    #     ServerDefinition objects in the result of list_servers().
+    #     Server objects in the result of list_servers().
     #     Keys: attr names; values: attr values.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
@@ -1002,19 +1002,19 @@ TESTCASES_SDF_LIST_DEFAULT_SERVERS = [
 @simplified_test_function
 def test_SDF_list_default_servers(testcase, sdf_yaml, exp_srvs_attrs):
     """
-    Test function for ServerDefinitionFile.list_default_servers()
+    Test function for ServerFile.list_default_servers()
     """
 
     with TempDirectory() as tmp_dir:
 
-        # Create the server definition file
+        # Create the server file
         filename = 'tmp_sdf.yaml'
         filepath = os.path.join(tmp_dir.path, filename)
         if isinstance(sdf_yaml, six.text_type):
             sdf_yaml = sdf_yaml.encode('utf-8')
         tmp_dir.write(filename, sdf_yaml)
 
-        sdf = ServerDefinitionFile(filepath)
+        sdf = ServerFile(filepath)
 
         # The code to be tested
         act_sds = sdf.list_default_servers()
@@ -1038,14 +1038,14 @@ def test_SDF_list_default_servers(testcase, sdf_yaml, exp_srvs_attrs):
 
 TESTCASES_SDF_LIST_ALL_SERVERS = [
 
-    # Testcases for ServerDefinitionFile.list_all_servers()
+    # Testcases for ServerFile.list_all_servers()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * sdf_yaml: Content of server definition file.
+    #   * sdf_yaml: Content of server file.
     #   * exp_srvs_attrs: List of dicts with expected attributes of
-    #     ServerDefinition objects in the result of list_servers().
+    #     Server objects in the result of list_servers().
     #     Keys: attr names; values: attr values.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
@@ -1234,19 +1234,19 @@ TESTCASES_SDF_LIST_ALL_SERVERS = [
 @simplified_test_function
 def test_SDF_list_all_servers(testcase, sdf_yaml, exp_srvs_attrs):
     """
-    Test function for ServerDefinitionFile.list_all_servers()
+    Test function for ServerFile.list_all_servers()
     """
 
     with TempDirectory() as tmp_dir:
 
-        # Create the server definition file
+        # Create the server file
         filename = 'tmp_sdf.yaml'
         filepath = os.path.join(tmp_dir.path, filename)
         if isinstance(sdf_yaml, six.text_type):
             sdf_yaml = sdf_yaml.encode('utf-8')
         tmp_dir.write(filename, sdf_yaml)
 
-        sdf = ServerDefinitionFile(filepath)
+        sdf = ServerFile(filepath)
 
         # The code to be tested
         act_sds = sdf.list_all_servers()

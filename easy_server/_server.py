@@ -11,23 +11,23 @@
 # limitations under the License.
 
 """
-A single server definition including secrets.
+A single server including secrets.
 """
 
 from __future__ import absolute_import, print_function
 
-__all__ = ['ServerDefinition']
+__all__ = ['Server']
 
 
-class ServerDefinition(object):
+class Server(object):
     """
-    Represents a single server definition from a server definition file,
-    and optionally the corresponding secrets from a vault file.
+    A data object that represents a single server item from a server file, and
+    optionally the corresponding secrets item from a vault file.
 
-    Objects of this class are not created by the user, but are returned
-    by methods of the :class:`~easy_server.ServerDefinitionFile` class.
+    Objects of this class are not created by the user, but are returned by
+    methods of the :class:`~easy_server.ServerFile` class.
 
-    Example for a server definition item in a server definition file:
+    Example for a server item in a server file:
 
     .. code-block:: yaml
 
@@ -56,15 +56,14 @@ class ServerDefinition(object):
             Nickname of the server.
 
           server_dict (dict):
-            Dictionary with the properties of the server item for the
-            nickname in the server definition file, with unspecified
-            properties defaulted.
+            Dictionary with the properties of the server item from the server
+            file, wherein optional properties omitted in the server file have
+            been set to their default values.
 
           secrets_dict (dict):
-            Dictionary with the properties of the secrets item for the
-            nickname in the vault file, or `None` if no vault file is specified
-            in the server definition file, or if the vault file does not
-            contain an entry for the server nickname.
+            Dictionary with the properties of the secrets item from the vault
+            file, or `None` if no vault file is specified in the server file
+            or if the vault file does not contain a corresponding item.
         """
         self._nickname = nickname
         self._description = server_dict['description']
@@ -75,7 +74,7 @@ class ServerDefinition(object):
 
     def __repr__(self):
         secrets = "{...}" if self._secrets else "None"
-        return "ServerDefinition(" \
+        return "Server(" \
             "nickname={s._nickname!r}, " \
             "description={s._description!r}, " \
             "contact_name={s._contact_name!r}, " \
@@ -88,8 +87,6 @@ class ServerDefinition(object):
     def nickname(self):
         """
         :term:`unicode string`: Nickname of the server.
-
-        This is the key of the server object in the server definition file.
         """
         return self._nickname
 
@@ -98,8 +95,8 @@ class ServerDefinition(object):
         """
         :term:`unicode string`: Short description of the server.
 
-        This is the value of the ``description`` property of the server object
-        in the server definition file.
+        This is the value of the ``description`` property of the server item
+        in the server file.
         """
         return self._description
 
@@ -108,8 +105,8 @@ class ServerDefinition(object):
         """
         :term:`unicode string`: Name of technical contact for the server.
 
-        This is the value of the ``contact_name`` property of the server object
-        in the server definition file.
+        This is the value of the ``contact_name`` property of the server item
+        in the server file. It is optional and defaults to `None`.
         """
         return self._contact_name
 
@@ -119,19 +116,19 @@ class ServerDefinition(object):
         :term:`unicode string`: Short reminder on the network/firewall/proxy/vpn
         used to access the server.
 
-        This is the value of the ``access_via`` property of the server object
-        in the server definition file.
+        This is the value of the ``access_via`` property of the server item
+        in the server file. It is optional and defaults to `None`.
         """
         return self._access_via
 
     @property
     def user_defined(self):
         """
-        dict: Additional user-defined properties of the server.
+        dict: Additional user-defined properties for the server.
 
-        This is the value of the ``user_defined`` property of the server object
-        in the server definition file. This value can have an arbitrary
-        user-defined structure.
+        This is the value of the ``user_defined`` property of the server item
+        in the server file. This value can have an arbitrary user-defined
+        structure. It is optional and defaults to `None`.
         """
         return self._user_defined
 
@@ -139,7 +136,7 @@ class ServerDefinition(object):
     def secrets(self):
         """
         dict: Secrets defined in the vault file for the server, or `None` if
-        no vault file is specified in the server definition file, or if the
-        vault file does not contain an entry for the server nickname.
+        no vault file is specified in the server file or if the vault file does
+        not contain a corresponding item.
         """
         return self._secrets

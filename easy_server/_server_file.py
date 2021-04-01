@@ -11,7 +11,7 @@
 # limitations under the License.
 
 """
-Support for server definition files.
+Support for server files.
 """
 
 from __future__ import absolute_import, print_function
@@ -19,18 +19,17 @@ import os
 import yaml
 import jsonschema
 
-from ._exceptions import ServerDefinitionFileOpenError, \
-    ServerDefinitionFileFormatError
-from ._srvdef import ServerDefinition
+from ._server import Server
 from ._vault_file import VaultFile
 
-__all__ = ['ServerDefinitionFile']
+__all__ = ['ServerFile', 'ServerFileException',
+           'ServerFileOpenError', 'ServerFileFormatError']
 
 
-# JSON schema describing the structure of the server definition files
-SERVER_DEFINITION_FILE_SCHEMA = {
+# JSON schema describing the structure of the server files
+SERVER_FILE_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "JSON schema for easy-server server definition files",
+    "title": "JSON schema for easy-server server files",
     "definitions": {},
     "type": "object",
     "required": [
@@ -42,11 +41,11 @@ SERVER_DEFINITION_FILE_SCHEMA = {
             "type": "string",
             "description":
                 "Path name of vault file. Relative path names are relative to "
-                "the directory of the server definition file",
+                "the directory of the server file",
         },
         "servers": {
             "type": "object",
-            "description": "The servers in the server definition file",
+            "description": "The servers in the server file",
             "additionalProperties": False,
             "patternProperties": {
                 "^[a-zA-Z0-9_]+$": {
@@ -86,7 +85,7 @@ SERVER_DEFINITION_FILE_SCHEMA = {
         },
         "server_groups": {
             "type": "object",
-            "description": "The server groups in the server definition file",
+            "description": "The server groups in the server file",
             "additionalProperties": False,
             "patternProperties": {
                 "^[a-zA-Z0-9_]+$": {
@@ -134,20 +133,49 @@ SERVER_DEFINITION_FILE_SCHEMA = {
 }
 
 
-class ServerDefinitionFile(object):
+class ServerFileException(Exception):
     """
-    A server definition file that specifies the openly accessible portion
-    of the server definitions and optionally references a vault file that
-    specifies the secret portion of the server definitions.
+    Abstract base exception for errors related to server files.
 
-    An object of this class is tied to a single server definition file.
+    Derived from :exc:`py:Exception`.
+    """
+    pass
 
-    The server definition file is loaded when this object is initialized. If
-    the server definition file specifies a vault file, the vault file is also
+
+class ServerFileOpenError(ServerFileException):
+    """
+    Exception indicating that a server file was not found or cannot
+    be accessed due to a permission error.
+
+    Derived from :exc:`ServerFileException`.
+    """
+    pass
+
+
+class ServerFileFormatError(ServerFileException):
+    """
+    Exception indicating that an existing server file has some
+    issue with the format of its file content.
+
+    Derived from :exc:`ServerFileException`.
+    """
+    pass
+
+
+class ServerFile(object):
+    """
+    A server file that specifies the openly accessible portion of the servers
+    and optionally references a vault file that specifies the secret portion
+    of the servers.
+
+    An object of this class is tied to a single server file.
+
+    The server file is loaded when this object is initialized. If
+    the server file specifies a vault file, the vault file is also
     loaded at that point.
 
     For a description of the file formats, see sections
-    :ref:`Server definition files` and :ref:`Vault files`.
+    :ref:`Server files` and :ref:`Vault files`.
     """
 
     def __init__(
@@ -157,7 +185,7 @@ class ServerDefinitionFile(object):
         Parameters:
 
           filepath (:term:`unicode string`):
-            Path name of the server definition file. Relative path names are
+            Path name of the server file. Relative path names are
             relative to the current directory.
 
           password (:term:`unicode string`):
@@ -177,15 +205,15 @@ class ServerDefinitionFile(object):
             is displayed regardless of verbose mode.
 
         Raises:
-          ServerDefinitionFileOpenError: Error opening server definition file
-          ServerDefinitionFileFormatError: Invalid server definition file
+          ServerFileOpenError: Error opening server file
+          ServerFileFormatError: Invalid server file
             format
           VaultFileOpenError: Error with opening the vault file
           VaultFileDecryptError: Error with decrypting the vault file
           VaultFileFormatError: Invalid vault file format
         """
         self._filepath = os.path.abspath(filepath)
-        self._data = _load_server_definition_file(filepath)
+        self._data = _load_server_file(filepath)
 
         self._vault_file = self._data['vault_file']
         if self._vault_file:
@@ -207,7 +235,7 @@ class ServerDefinitionFile(object):
     def filepath(self):
         """
         :term:`unicode string`: Absolute path name of the
-        server definition file.
+        server file.
         """
         return self._filepath
 
@@ -215,23 +243,23 @@ class ServerDefinitionFile(object):
     def vault_file(self):
         """
         :term:`unicode string`: Absolute path name of the vault file specified
-        in the server definition file, or `None` if no vault file was specified.
+        in the server file, or `None` if no vault file was specified.
 
         Vault files specified with a relative path name are relative to the
-        directory of the server definition file.
+        directory of the server file.
         """
         return self._vault_file
 
     def get_server(self, nickname):
         """
-        Get server definition for a given server nickname.
+        Get server for a given server nickname.
 
         Parameters:
           nickname (:term:`unicode string`): Server nickname.
 
         Returns:
-          :class:`~easy_server.ServerDefinition`:
-             Server definition with the specified nickname.
+          :class:`~easy_server.Server`:
+             Server with the specified nickname.
 
         Raises:
           :exc:`py:KeyError`: Nickname not found
@@ -240,7 +268,7 @@ class ServerDefinitionFile(object):
             server_dict = self._servers[nickname]
         except KeyError:
             new_exc = KeyError(
-                "Server with nickname {!r} not found in server definition "
+                "Server with nickname {!r} not found in server "
                 "file {!r}".
                 format(nickname, self._filepath))
             new_exc.__cause__ = None
@@ -252,18 +280,18 @@ class ServerDefinitionFile(object):
                 secrets_dict = None
         else:
             secrets_dict = None
-        return ServerDefinition(nickname, server_dict, secrets_dict)
+        return Server(nickname, server_dict, secrets_dict)
 
     def list_servers(self, nickname):
         """
-        List the server definitions for a given server or server group nickname.
+        List the servers for a given server or server group nickname.
 
         Parameters:
           nickname (:term:`unicode string`): Server or server group nickname.
 
         Returns:
-          list of :class:`~easy_server.ServerDefinition`:
-          List of server definitions.
+          list of :class:`~easy_server.Server`:
+          List of servers.
 
         Raises:
           :exc:`py:KeyError`: Nickname not found
@@ -272,7 +300,7 @@ class ServerDefinitionFile(object):
             return [self.get_server(nickname)]
 
         if nickname in self._server_groups:
-            sd_list = list()  # of ServerDefinition objects
+            sd_list = list()  # of Server objects
             sd_nick_list = list()  # of server nicknames
             sg_item = self._server_groups[nickname]
             for member_nick in sg_item['members']:
@@ -290,14 +318,14 @@ class ServerDefinitionFile(object):
 
     def list_default_servers(self):
         """
-        List the server definitions for the default server or group.
+        List the servers for the default server or group.
 
-        An omitted 'default' element in the server definition file results in
+        An omitted 'default' element in the server file results in
         an empty list.
 
         Returns:
-          list of :class:`~easy_server.ServerDefinition`:
-          List of server definitions.
+          list of :class:`~easy_server.Server`:
+          List of servers.
         """
         if self._default is None:
             return []
@@ -305,48 +333,48 @@ class ServerDefinitionFile(object):
 
     def list_all_servers(self):
         """
-        List all server definitions.
+        List all servers.
 
         Returns:
-          list of :class:`~easy_server.ServerDefinition`:
-          List of server definitions.
+          list of :class:`~easy_server.Server`:
+          List of servers.
         """
         return [self.get_server(nickname) for nickname in self._servers]
 
 
-def _load_server_definition_file(filepath):
+def _load_server_file(filepath):
     """
-    Load the server definition file, validate its format and default some
+    Load the server file, validate its format and default some
     optional elements.
 
     Returns:
       dict: Python dict representing the file content.
 
     Raises:
-      ServerDefinitionFileOpenError: Error opening server definition file
-      ServerDefinitionFileFormatError: Invalid server definition file content
+      ServerFileOpenError: Error opening server file
+      ServerFileFormatError: Invalid server file content
     """
 
-    # Load the server definition file (YAML)
+    # Load the server file (YAML)
     try:
         with open(filepath, 'r') as fp:
             data = yaml.safe_load(fp)
     except (OSError, IOError) as exc:
-        new_exc = ServerDefinitionFileOpenError(
-            "Cannot open server definition file: {fn}: {exc}".
+        new_exc = ServerFileOpenError(
+            "Cannot open server file: {fn}: {exc}".
             format(fn=filepath, exc=exc))
         new_exc.__cause__ = None
-        raise new_exc  # ServerDefinitionFileOpenError
+        raise new_exc  # ServerFileOpenError
     except yaml.YAMLError as exc:
-        new_exc = ServerDefinitionFileFormatError(
-            "Invalid YAML syntax in server definition file {fn}: {exc}".
+        new_exc = ServerFileFormatError(
+            "Invalid YAML syntax in server file {fn}: {exc}".
             format(fn=filepath, exc=exc))
         new_exc.__cause__ = None
-        raise new_exc  # ServerDefinitionFileFormatError
+        raise new_exc  # ServerFileFormatError
 
     # Schema validation of file content
     try:
-        jsonschema.validate(data, SERVER_DEFINITION_FILE_SCHEMA)
+        jsonschema.validate(data, SERVER_FILE_SCHEMA)
         # Raises jsonschema.exceptions.SchemaError if JSON schema is invalid
     except jsonschema.exceptions.ValidationError as exc:
         if exc.absolute_path:
@@ -355,12 +383,12 @@ def _load_server_definition_file(filepath):
         else:
             elem_str = 'top-level element'
 
-        new_exc = ServerDefinitionFileFormatError(
-            "Invalid format in server definition file {fn}: Validation "
+        new_exc = ServerFileFormatError(
+            "Invalid format in server file {fn}: Validation "
             "failed on {elem}: {exc}".
             format(fn=filepath, elem=elem_str, exc=exc))
         new_exc.__cause__ = None
-        raise new_exc  # ServerDefinitionFileFormatError
+        raise new_exc  # ServerFileFormatError
 
     # Establish defaults for optional top-level elements
 
@@ -381,22 +409,22 @@ def _load_server_definition_file(filepath):
     default_nick = data['default']
 
     if default_nick and default_nick not in all_nicks:
-        new_exc = ServerDefinitionFileFormatError(
+        new_exc = ServerFileFormatError(
             "Default nickname '{n}' not found in servers or groups in "
-            "server definition file {fn}".
+            "server file {fn}".
             format(n=default_nick, fn=filepath))
         new_exc.__cause__ = None
-        raise new_exc  # ServerDefinitionFileFormatError
+        raise new_exc  # ServerFileFormatError
 
     for group_nick in group_nicks:
         sg_item = data['server_groups'][group_nick]
         for member_nick in sg_item['members']:
             if member_nick not in all_nicks:
-                new_exc = ServerDefinitionFileFormatError(
+                new_exc = ServerFileFormatError(
                     "Nickname '{n}' in server group '{g}' not found in "
-                    "servers or groups in server definition file {fn}".
+                    "servers or groups in server file {fn}".
                     format(n=member_nick, g=group_nick, fn=filepath))
                 new_exc.__cause__ = None
-                raise new_exc  # ServerDefinitionFileFormatError
+                raise new_exc  # ServerFileFormatError
 
     return data

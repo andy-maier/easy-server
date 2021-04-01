@@ -1,4 +1,6 @@
-# Example server definition file for easy-server project.
+# Example server file for easy-server project.
+
+vault_file: vault.yml
 
 servers:
 

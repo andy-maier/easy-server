@@ -11,26 +11,26 @@
 # limitations under the License.
 
 """
-Test the _srvdef.py module.
+Test the _server.py module.
 """
 
 from __future__ import absolute_import, print_function
 import pytest
-from easy_server import ServerDefinition
+from easy_server import Server
 
 from ..utils.simplified_test_function import simplified_test_function
 
 
-TESTCASES_SERVER_DEFINITION_INIT = [
+TESTCASES_SERVER_INIT = [
 
-    # Testcases for ServerDefinition.__init__()
+    # Testcases for Server.__init__()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * init_args: Tuple of positional arguments to ServerDefinition().
-    #   * init_kwargs: Dict of keyword arguments to ServerDefinition().
-    #   * exp_attrs: Dict with expected ServerDefinition attributes.
+    #   * init_args: Tuple of positional arguments to Server().
+    #   * init_kwargs: Dict of keyword arguments to Server().
+    #   * exp_attrs: Dict with expected Server attributes.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -219,15 +219,15 @@ TESTCASES_SERVER_DEFINITION_INIT = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SERVER_DEFINITION_INIT)
+    TESTCASES_SERVER_INIT)
 @simplified_test_function
-def test_ServerDefinition_init(testcase, init_args, init_kwargs, exp_attrs):
+def test_Server_init(testcase, init_args, init_kwargs, exp_attrs):
     """
-    Test function for ServerDefinition.__init__()
+    Test function for Server.__init__()
     """
 
     # The code to be tested
-    act_obj = ServerDefinition(*init_args, **init_kwargs)
+    act_obj = Server(*init_args, **init_kwargs)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -238,7 +238,7 @@ def test_ServerDefinition_init(testcase, init_args, init_kwargs, exp_attrs):
     for attr_name in exp_attrs:
         exp_attr_value = exp_attrs[attr_name]
         assert hasattr(act_obj, attr_name), \
-            "Missing attribute {0!r} in returned ServerDefinition object". \
+            "Missing attribute {0!r} in returned Server object". \
             format(attr_name)
         act_attr_value = getattr(act_obj, attr_name)
         assert act_attr_value == exp_attr_value, \
@@ -246,14 +246,14 @@ def test_ServerDefinition_init(testcase, init_args, init_kwargs, exp_attrs):
             format(attr_name, exp_attr_value, act_attr_value)
 
 
-TESTCASES_SERVER_DEFINITION_REPR = [
+TESTCASES_SERVER_REPR = [
 
-    # Testcases for ServerDefinition.__repr__()
+    # Testcases for Server.__repr__()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * init_kwargs: Dict of keyword arguments to ServerDefinition().
+    #   * init_kwargs: Dict of keyword arguments to Server().
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -281,14 +281,14 @@ TESTCASES_SERVER_DEFINITION_REPR = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SERVER_DEFINITION_REPR)
+    TESTCASES_SERVER_REPR)
 @simplified_test_function
-def test_ServerDefinition_repr(testcase, init_kwargs):
+def test_Server_repr(testcase, init_kwargs):
     """
-    Test function for ServerDefinition.__repr__()
+    Test function for Server.__repr__()
     """
 
-    obj = ServerDefinition(**init_kwargs)
+    obj = Server(**init_kwargs)
 
     repr_str = repr(obj)
 
@@ -298,7 +298,7 @@ def test_ServerDefinition_repr(testcase, init_kwargs):
         "Expected exception not raised: {}". \
         format(testcase.exp_exc_types)
 
-    assert "ServerDefinition(" in repr_str
+    assert "Server(" in repr_str
     assert "nickname=" in repr_str
     assert "description=" in repr_str
     assert "contact_name=" in repr_str

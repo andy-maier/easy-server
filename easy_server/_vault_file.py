@@ -19,10 +19,9 @@ from copy import deepcopy
 import jsonschema
 import easy_vault
 
-from ._exceptions import VaultFileOpenError, VaultFileDecryptError, \
-    VaultFileFormatError
 
-__all__ = ['VaultFile']
+__all__ = ['VaultFile', 'VaultFileException', 'VaultFileOpenError',
+           'VaultFileDecryptError', 'VaultFileFormatError']
 
 
 # JSON schema describing the structure of the vault files
@@ -52,9 +51,47 @@ VAULT_FILE_SCHEMA = {
 }
 
 
+class VaultFileException(Exception):
+    """
+    Abstract base exception for errors related to vault files.
+
+    Derived from :exc:`py:Exception`.
+    """
+    pass
+
+
+class VaultFileOpenError(VaultFileException):
+    """
+    Exception indicating that a vault file was not found or cannot be accessed
+    for reading due to a permission error.
+
+    Derived from :exc:`VaultFileException`.
+    """
+    pass
+
+
+class VaultFileDecryptError(VaultFileException):
+    """
+    Exception indicating that an encrypted vault file could not be decrypted.
+
+    Derived from :exc:`VaultFileException`.
+    """
+    pass
+
+
+class VaultFileFormatError(VaultFileException):
+    """
+    Exception indicating that an existing vault file has some issue with the
+    format of its file content.
+
+    Derived from :exc:`VaultFileException`.
+    """
+    pass
+
+
 class VaultFile(object):
     """
-    A vault file that specifies the sensitive portion of server definitions,
+    A vault file that specifies the sensitive portion of servers,
     i.e. the secrets for accessing the servers.
 
     An object of this class is tied to a single vault file.
@@ -131,7 +168,7 @@ class VaultFile(object):
 
     def get_secrets(self, nickname):
         """
-        Get the secrets from the vault file for a given server nickname.
+        Get the secrets item from the vault file for a given server nickname.
 
         Example:
 
@@ -159,10 +196,10 @@ class VaultFile(object):
           nickname (:term:`unicode string`): Server nickname.
 
         Returns:
-          dict: Copy of the secrets for that server from the vault.
+          dict: Copy of the secrets item for that server from the vault file.
 
         Raises:
-          KeyError: Nickname not found in the vault.
+          KeyError: Nickname not found in the vault file.
         """
         try:
             secrets_dict = self._secrets[nickname]

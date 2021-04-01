@@ -17,12 +17,12 @@ def main():
         sys.exit(2)
 
     vault_file = sys.argv[1]
-    srvdef_file = sys.argv[2]
+    server_file = sys.argv[2]
     nickname = sys.argv[3]
 
     try:
-        sdf = easy_server.ServerDefinitionFile(srvdef_file)
-    except easy_server.ServerDefinitionFileException as exc:
+        sdf = easy_server.ServerFile(server_file)
+    except easy_server.ServerFileException as exc:
         print("Error: {}".format(exc))
         return 1
 
