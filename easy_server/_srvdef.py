@@ -24,6 +24,9 @@ class ServerDefinition(object):
     Represents a single server definition from a server definition file,
     and optionally the corresponding secrets from a vault file.
 
+    Objects of this class are not created by the user, but are returned
+    by methods of the :class:`~easy_server.ServerDefinitionFile` class.
+
     Example for a server definition item in a server definition file:
 
     .. code-block:: yaml

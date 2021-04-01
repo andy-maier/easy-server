@@ -49,16 +49,17 @@ Server definition files
 -----------------------
 
 A *server definition file* contains the openly accessible portion of the server
-definitions.
+definitions and optionally references a :ref:`vault file <vault files>` that
+specifies the secret portion of the server definitions.
 
 The server definition file must be in YAML format and defines servers, server
 groups and a default server or group. The servers and server groups are
 identified using user-defined nicknames and the file stores some basic
 information about them.
 
-The secrets for accessing the servers are not defined in this file but
-in the :ref:`vault file <vault files>`. The link between items in these two
-files is done by means of the user-defined nicknames of the servers.
+The vault file is optional and its path name is specified with a property in
+the server definition file. Corresponding server items in these two files
+have the same nicknames.
 
 Here is an example server definition file. The format of the file has some
 predefined fixed data about the servers and groups, and additional user-defined
@@ -68,6 +69,8 @@ Here is a complete working example of a server definition file that defines
 two servers and one server group:
 
 .. code-block:: yaml
+
+    vault_file: vault.yml                 # Relative to directory of this file
 
     servers:                              # Fixed top-level key
 
@@ -110,6 +113,10 @@ See :class:`easy_server.ServerDefinitionFile` for details.
 These nicknames are case sensitive and their allowable character set are
 alphenumeric characters and the underscore character, i.e. ``A-Z``, ``a-z``,
 ``0-9``, and ``_``.
+
+The value of the optional ``vault_file`` top-level property is the path name
+of the vault file that belongs to this server definition file. Relative path
+names are relative to the directory of the server definition file.
 
 The value of the ``servers`` top-level property is an object (=dictionary) that
 has one property for each server that is defined. The property name is the
@@ -154,8 +161,8 @@ The vault file must be an "easy-vault" file and can be encrypted and decrypted
 using the ``easy-vault`` command provided by the
 `easy-vault <https://easy-vault.readthedocs.io/en/latest/>`_ package.
 
-The "easy-vault" files must satisfy some additional requirements: They must be
-in YAML syntax and must follow the YAML format described in this section.
+The "easy-vault" files must be in YAML syntax and must follow the YAML schema
+described in this section.
 
 Here is a complete working example of a vault file that defines host, username
 and password for the servers from the example server definition file shown in
@@ -230,8 +237,7 @@ or in this example, the servers in a server group:
 
 .. code-block:: python
 
-    from easy_server import VaultFile, VaultFileException, \
-        ServerDefinitionFile, ServerDefinitionFileException
+    import easy_server
 
     # Some parameters that typically would be input to the program:
     vault_file = 'examples/vault.yml'        # Path name of vault file
@@ -239,14 +245,14 @@ or in this example, the servers in a server group:
     nickname = 'mygroup1'                    # Nickname of server or group
 
     try:
-        sdf = ServerDefinitionFile(srvdef_file)
-    except ServerDefinitionFileException as exc:
+        sdf = easy_server.ServerDefinitionFile(srvdef_file)
+    except easy_server.ServerDefinitionFileException as exc:
         print("Error: {}".format(exc))
         return 1
 
     try:
-        vault = VaultFile(vault_file)
-    except VaultFileException as exc:
+        vault = easy_server.VaultFile(vault_file)
+    except easy_server.VaultFileException as exc:
         print("Error: {}".format(exc))
         return 1
 

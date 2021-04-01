@@ -6,9 +6,7 @@ Example script that shows the content of a vault file.
 import sys
 import os
 from pprint import pprint
-import easy_vault
-
-from easy_server import VaultFile, VaultFileException
+import easy_server
 
 
 def main():
@@ -21,8 +19,8 @@ def main():
     vault_file = sys.argv[1]
 
     try:
-        vault = VaultFile(vault_file)
-    except VaultFileException as exc:
+        vault = easy_server.VaultFile(vault_file)
+    except easy_server.VaultFileException as exc:
         print("Error: {}".format(exc))
         return 1
 

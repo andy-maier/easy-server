@@ -6,10 +6,7 @@ Example script that processes the servers of a server or group nickname.
 import sys
 import os
 from pprint import pprint
-import easy_vault
-
-from easy_server import VaultFile, VaultFileException, \
-    ServerDefinitionFile, ServerDefinitionFileException
+import easy_server
 
 
 def main():
@@ -24,14 +21,14 @@ def main():
     nickname = sys.argv[3]
 
     try:
-        sdf = ServerDefinitionFile(srvdef_file)
-    except ServerDefinitionFileException as exc:
+        sdf = easy_server.ServerDefinitionFile(srvdef_file)
+    except easy_server.ServerDefinitionFileException as exc:
         print("Error: {}".format(exc))
         return 1
 
     try:
-        vault = VaultFile(vault_file)
-    except VaultFileException as exc:
+        vault = easy_server.VaultFile(vault_file)
+    except easy_server.VaultFileException as exc:
         print("Error: {}".format(exc))
         return 1
 
