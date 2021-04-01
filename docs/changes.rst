@@ -24,6 +24,11 @@ Released: not yet
 
 **Incompatible changes:**
 
+* The new optional 'use_prompting' parameter of the 'VaultFile' and
+  'ServerDefinitionFile' classes was not added at the end of the parameter list.
+  This is incompatible for users who called the function with positional
+  arguments. (related to issue #22)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -35,6 +40,12 @@ Released: not yet
   the vault file is loaded as well and the secrets for a server defined in
   the vault file are available in the ServerDefinition object as a new `secrets`
   property. (issue #20)
+
+* In the 'VaultFile' and 'ServerDefinitionFile' classes, added a new parameter
+  'use_prompting' that allows disabling the interactive prompting for passwords.
+  Also, changed the logic for requiring passwords such that they are only
+  required when the vault file is being encrypted, decrypted or accessed in the
+  encrypted state. (issue #22)
 
 **Cleanup:**
 

@@ -61,9 +61,17 @@ class VaultFile(object):
 
     For a description of the file format, see section :ref:`Vault files`.
 
-    The vault file may be in clear text form (i.e. unencrypted) or
-    encrypted. The file remains unchanged in all cases, and only the data read
-    from it is decrypted upon use if it was encrypted.
+    The vault file may be in the encrypted or decrypted state. When data from
+    the vault file is read, the vault file remains unchanged, and the data is
+    is decrypted in memory if the file was in the encrypted state.
+
+    Vault file encryption, vault file decryption, and reading data from an
+    encrypted vault file requires a password specific to the vault file.
+    The password can be specified as an init argument to this class, or if not
+    provided will be retrieved the keyring service, or if not found there, will
+    be interactively prompted for. The use of the keyring service (for
+    retrieving and storing) and the use of password prompting can be
+    individually disabled.
 
     Typical use in client programs would be to use the keyring and to specify
     no password (the default). Typical use in test programs running in a CI/CD
@@ -72,7 +80,8 @@ class VaultFile(object):
     """
 
     def __init__(
-            self, filepath, password=None, use_keyring=True, verbose=False):
+            self, filepath, password=None, use_keyring=True, use_prompting=True,
+            verbose=False):
         """
         Parameters:
 
@@ -80,12 +89,15 @@ class VaultFile(object):
             Path name of the vault file.
 
           password (:term:`unicode string`):
-            Password for decrypting the vault file if needed. May be `None`
-            only if the keyring is used.
+            Password for the vault file. `None` indicates that no password has
+            been provided.
 
           use_keyring (bool):
-            Use the keyring (`True`) or not (`False`). This applies to both
-            retrieving and storing the password.
+            Enable the use of the keyring service for retrieving and storing the
+            password.
+
+          use_prompting (bool):
+            Enable the use of password prompting for getting the password.
 
           verbose (bool):
             Print additional messages. Note that the password prompt (if needed)
@@ -98,7 +110,7 @@ class VaultFile(object):
         """
         self._filepath = filepath
         self._vault_obj = _load_vault_file(
-            filepath, password, use_keyring, verbose)
+            filepath, password, use_keyring, use_prompting, verbose)
 
         # The following attributes are for faster access
         self._secrets = self._vault_obj['secrets']
@@ -113,13 +125,13 @@ class VaultFile(object):
     @property
     def nicknames(self):
         """
-        list of string: Server nicknames in the vault.
+        list of string: Server nicknames in the vault file.
         """
         return list(self._secrets.keys())
 
     def get_secrets(self, nickname):
         """
-        Get the secrets for a given server nickname.
+        Get the secrets from the vault file for a given server nickname.
 
         Example:
 
@@ -150,7 +162,7 @@ class VaultFile(object):
           dict: Copy of the secrets for that server from the vault.
 
         Raises:
-          :exc:`py:KeyError`: Nickname not found in the vault.
+          KeyError: Nickname not found in the vault.
         """
         try:
             secrets_dict = self._secrets[nickname]
@@ -163,7 +175,7 @@ class VaultFile(object):
         return deepcopy(secrets_dict)
 
 
-def _load_vault_file(filepath, password, use_keyring, verbose):
+def _load_vault_file(filepath, password, use_keyring, use_prompting, verbose):
     """
     Load the vault file and return its complete content.
 
@@ -175,12 +187,15 @@ def _load_vault_file(filepath, password, use_keyring, verbose):
         Path name of vault file.
 
       password (:term:`unicode string`):
-        Password for decrypting the vault file if needed. May be `None` only
-        if the keyring is used.
+        Password for the vault file. `None` indicates that no password has
+        been provided.
 
       use_keyring (bool):
-        Use the keyring (`True`) or not (`False`). This applies to both
-        retrieving and storing the password.
+        Enable the use of the keyring service for retrieving and storing the
+        password.
+
+      use_prompting (bool):
+        Enable the use of password prompting for getting the password.
 
       verbose (bool):
         Print additional messages. Note that the password prompt (if needed)
@@ -195,9 +210,10 @@ def _load_vault_file(filepath, password, use_keyring, verbose):
       VaultFileFormatError: Invalid vault file format
     """
 
-    if password is None:
+    if password is None and easy_vault.EasyVault(filepath).is_encrypted():
         password = easy_vault.get_password(
-            filepath, use_keyring=use_keyring, verbose=verbose)
+            filepath, use_keyring=use_keyring, use_prompting=use_prompting,
+            verbose=verbose)
 
     vault = easy_vault.EasyVault(filepath, password)
     try:
@@ -215,8 +231,9 @@ def _load_vault_file(filepath, password, use_keyring, verbose):
         new_exc.__cause__ = None
         raise new_exc  # VaultFileFormatError
 
-    easy_vault.set_password(
-        filepath, password, use_keyring=use_keyring, verbose=verbose)
+    if password is not None:
+        easy_vault.set_password(
+            filepath, password, use_keyring=use_keyring, verbose=verbose)
 
     # Validate the data object using JSON schema
     try:

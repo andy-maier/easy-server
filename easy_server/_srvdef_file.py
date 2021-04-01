@@ -137,20 +137,22 @@ SERVER_DEFINITION_FILE_SCHEMA = {
 class ServerDefinitionFile(object):
     """
     A server definition file that specifies the openly accessible portion
-    of the server definitions.
+    of the server definitions and optionally references a vault file that
+    specifies the secret portion of the server definitions.
 
     An object of this class is tied to a single server definition file.
 
     The server definition file is loaded when this object is initialized. If
     the server definition file specifies a vault file, the vault file is also
-    loaded.
+    loaded at that point.
 
-    For a description of the file format, see section
-    :ref:`Server definition files`.
+    For a description of the file formats, see sections
+    :ref:`Server definition files` and :ref:`Vault files`.
     """
 
     def __init__(
-            self, filepath, password=None, use_keyring=True, verbose=False):
+            self, filepath, password=None, use_keyring=True, use_prompting=True,
+            verbose=False):
         """
         Parameters:
 
@@ -159,13 +161,16 @@ class ServerDefinitionFile(object):
             relative to the current directory.
 
           password (:term:`unicode string`):
-            Password for decrypting the vault file if needed. May be `None`
-            only if the keyring is used.
+            Password for the vault file. `None` indicates that no password has
+            been provided.
 
           use_keyring (bool):
-            Use the keyring (`True`) or not (`False`) for the password of the
-            vault file. This applies to both retrieving and storing the
-            password.
+            Enable the use of the keyring service for retrieving and storing the
+            password of the vault file.
+
+          use_prompting (bool):
+            Enable the use of password prompting for getting the password of
+            the vault file.
 
           verbose (bool):
             Print additional messages. Note that the password prompt (if needed)
@@ -189,7 +194,7 @@ class ServerDefinitionFile(object):
                     os.path.dirname(self._filepath), self._vault_file)
             self._vault = VaultFile(
                 self._vault_file, password=password, use_keyring=use_keyring,
-                verbose=verbose)
+                use_prompting=use_prompting, verbose=verbose)
         else:
             self._vault = None
 
