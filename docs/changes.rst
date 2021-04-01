@@ -17,10 +17,10 @@ Change log
 ==========
 
 
-Version 0.6.0.dev1
-------------------
+Version 0.6.0
+-------------
 
-Released: not yet
+Released: 2021-04-02
 
 **Incompatible changes:**
 
@@ -33,10 +33,6 @@ Released: not yet
   'ServerDefinitionFile' to 'ServerFile',
   'ServerDefinition' to 'Server',
   'ServerDefinition...' exceptions to 'Server...'
-
-**Deprecations:**
-
-**Bug fixes:**
 
 **Enhancements:**
 
@@ -51,14 +47,6 @@ Released: not yet
   Also, changed the logic for requiring passwords such that they are only
   required when the vault file is being encrypted, decrypted or accessed in the
   encrypted state. (issue #22)
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/andy-maier/easy-server/issues
 
 
 Version 0.5.0
