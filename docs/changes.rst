@@ -29,6 +29,11 @@ Released: not yet
   This is incompatible for users who called the function with positional
   arguments. (related to issue #22)
 
+* Renamed the following classes for simplicity:
+  'ServerDefinitionFile' to 'ServerFile',
+  'ServerDefinition' to 'Server',
+  'ServerDefinition...' exceptions to 'Server...'
+
 **Deprecations:**
 
 **Bug fixes:**

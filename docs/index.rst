@@ -19,8 +19,8 @@ sensitive information for accessing servers (or services), such as logon
 credentials or API keys.
 
 The information for accessing the servers is divided into a general portion
-that is defined in an openly accessible *server definition file*, and
-a sensitive portion that is defined in an encrypted *vault file*.
+that is defined in an openly accessible *server file*, and a sensitive portion
+that is defined in an encrypted *vault file*.
 
 The vault file defines the secrets needed to access the servers, such as
 logon credentials or API keys. The vault file must be an "easy-vault" file and
@@ -29,15 +29,15 @@ by the `easy-vault <https://easy-vault.readthedocs.io/en/latest/>`_ package.
 The "easy-vault" files remain encrypted in the file system while their content
 is used to access the servers.
 
-The server definition file defines general information about the servers, such
-as a short description, contact name, or a reminder which network to use for
-accessing them.
+The server file defines general information about the servers, such as a short
+description, contact name, or a reminder which network to use for accessing
+them.
 
-The link between the server definition file and the vault file are user-defined
+The link between the server file and the vault file are user-defined
 nicknames for the servers. These nicknames can also used by users as a
 convenient way to identify servers in commands.
 
-The server definition files support the definition of server groups that
+The server files support the definition of server groups that
 also have a nickname.
 
 Typical use cases for the **easy-server** package are test programs

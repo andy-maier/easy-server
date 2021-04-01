@@ -25,24 +25,24 @@ Any functions not described in this section are considered internal and may
 change incompatibly without warning.
 
 
-.. _`ServerDefinitionFile class`:
+.. _`ServerFile class`:
 
-ServerDefinitionFile class
+ServerFile class
 --------------------------
 
-.. autoclass:: easy_server.ServerDefinitionFile
+.. autoclass:: easy_server.ServerFile
     :members:
     :autosummary:
     :autosummary-inherited-members:
     :special-members: __str__
 
 
-.. _`ServerDefinition class`:
+.. _`Server class`:
 
-ServerDefinition class
+Server class
 ----------------------
 
-.. autoclass:: easy_server.ServerDefinition
+.. autoclass:: easy_server.Server
     :members:
     :autosummary:
     :autosummary-inherited-members:
@@ -66,15 +66,15 @@ VaultFile class
 Exception classes
 -----------------
 
-.. autoclass:: easy_server.ServerDefinitionFileException
+.. autoclass:: easy_server.ServerFileException
     :members:
     :special-members: __str__
 
-.. autoclass:: easy_server.ServerDefinitionFileOpenError
+.. autoclass:: easy_server.ServerFileOpenError
     :members:
     :special-members: __str__
 
-.. autoclass:: easy_server.ServerDefinitionFileFormatError
+.. autoclass:: easy_server.ServerFileFormatError
     :members:
     :special-members: __str__
 

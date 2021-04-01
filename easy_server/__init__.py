@@ -18,10 +18,9 @@ easy-server - Secure server access that is easy to use
 # Importing just this module is enough.
 
 from __future__ import absolute_import, print_function
-from ._exceptions import *  # noqa: F403,F401
 from ._vault_file import *  # noqa: F403,F401
-from ._srvdef import *  # noqa: F403,F401
-from ._srvdef_file import *  # noqa: F403,F401
+from ._server import *  # noqa: F403,F401
+from ._server_file import *  # noqa: F403,F401
 from . import _version
 
 #: The full version of this package including any development levels, as a
