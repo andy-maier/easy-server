@@ -12,38 +12,35 @@ import easy_server
 def main():
     """Main function"""
 
-    if len(sys.argv) < 4:
-        print("Usage: {} VAULTFILE SRVDEFFILE NICKNAME".format(sys.argv[0]))
+    if len(sys.argv) < 2:
+        print("Usage: {} SERVERFILE [NICKNAME]".format(sys.argv[0]))
         sys.exit(2)
 
-    vault_file = sys.argv[1]
-    server_file = sys.argv[2]
-    nickname = sys.argv[3]
+    server_file = sys.argv[1]
+    if len(sys.argv) > 2:
+        nickname = sys.argv[2]
+    else:
+        nickname = None
 
     try:
-        sdf = easy_server.ServerFile(server_file)
+        esf_obj = easy_server.ServerFile(server_file)
     except easy_server.ServerFileException as exc:
         print("Error: {}".format(exc))
         return 1
 
-    try:
-        vault = easy_server.VaultFile(vault_file)
-    except easy_server.VaultFileException as exc:
-        print("Error: {}".format(exc))
-        return 1
+    if nickname:
+        es_list = esf_obj.list_servers(nickname)
+    else:
+        es_list = esf_obj.list_default_servers()
 
-    sd_list = sdf.list_servers(nickname)
-
-    for sd in sd_list:
-        nick = sd.nickname
-        secrets = vault.get_secrets(nick)
-
-        host=secrets['host'],
-        username=secrets['username']
-        password=secrets['password']
+    for es in es_list:
+        nickname = es.nickname
+        host = es.secrets['host'],
+        username = es.secrets['username']
+        password = es.secrets['password']
 
         print("Server {n}: host={h}, username={u}, password=********".
-              format(n=nick, h=host, u=username))
+              format(n=nickname, h=host, u=username))
 
     return 0
 

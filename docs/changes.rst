@@ -30,6 +30,9 @@ Released: not yet
 
 **Enhancements:**
 
+* Docs: Updated usage example and example scripts to use integrated vault.
+  (issue #26)
+
 **Cleanup:**
 
 **Known issues:**
