@@ -101,11 +101,9 @@ setuptools.setup(
         'Bug Tracker':
         'https://github.com/andy-maier/easy-server/issues',
         'Documentation':
-        'https://easy-server.readthedocs.io/en/latest/',
+        'https://easy-server.readthedocs.io/en/stable/',
         'Change Log':
-        'https://easy-server.readthedocs.io/en/latest/changes.html',
-        'Source Code':
-        'https://github.com/andy-maier/easy-server',
+        'https://easy-server.readthedocs.io/en/stable/changes.html',
     },
 
     options={'bdist_wheel': {'universal': True}},
