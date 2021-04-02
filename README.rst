@@ -32,7 +32,7 @@ a sensitive portion that is defined in an encrypted *vault file*.
 The vault file defines the secrets needed to access the servers, such as
 logon credentials or API keys. The vault file must be an "easy-vault" file and
 thus can be encrypted and decrypted using the ``easy-vault`` command provided
-by the `easy-vault <https://easy-vault.readthedocs.io/en/latest/>`_ package.
+by the `easy-vault <https://easy-vault.readthedocs.io/en/stable/>`_ package.
 The "easy-vault" files remain encrypted in the file system while their content
 is used to access the servers.
 
@@ -74,5 +74,5 @@ The **easy-server** project is provided under the
 
 .. # Links:
 
-.. _`Documentation`: https://easy-server.readthedocs.io/en/latest/
-.. _`Change log`: https://easy-server.readthedocs.io/en/latest/changes.html
+.. _`Documentation`: https://easy-server.readthedocs.io/en/stable/
+.. _`Change log`: https://easy-server.readthedocs.io/en/stable/changes.html
