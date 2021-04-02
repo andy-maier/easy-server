@@ -243,29 +243,22 @@ or in this example, the servers in a server group:
     nickname = 'mygroup1'                    # Nickname of server or group
 
     try:
-        sdf = easy_server.ServerFile(server_file)
+        esf = easy_server.ServerFile(server_file)
     except easy_server.ServerFileException as exc:
         print("Error: {}".format(exc))
         return 1
 
-    try:
-        vault = easy_server.VaultFile(vault_file)
-    except easy_server.VaultFileException as exc:
-        print("Error: {}".format(exc))
-        return 1
+    es_list = esf.list_servers(nickname)  # Works for server and group nicknames
 
-    sd_list = sdf.list_servers(nickname)  # Works for server and group nicknames
-
-    for sd in sd_list:
-        nick = sd.nickname
-        secrets = vault.get_secrets(nick)
+    for es in es_list:
+        nick = es.nickname
 
         # The structure of the secrets in the vault file is user-defined.
         # Here, we use the first example vault file.
 
-        host=secrets['host'],
-        username=secrets['username']
-        password=secrets['password']
+        host = es.secrets['host'],
+        username = es.secrets['username']
+        password = es.secrets['password']
 
         print("Server {n}: host={h}, username={u}, password=********".
               format(n=nick, h=host, u=username))
