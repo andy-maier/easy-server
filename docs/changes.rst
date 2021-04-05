@@ -17,29 +17,14 @@ Change log
 ==========
 
 
-Version 0.7.1.dev1
-------------------
+Version 0.7.1
+-------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2021-04-05
 
 **Bug fixes:**
 
 * Fixed the increase of the development status to Beta. (issue #29)
-
-**Enhancements:**
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/andy-maier/easy-server/issues
-
 
 
 Version 0.7.0
