@@ -470,4 +470,4 @@ def test_VaultFile_nicknames(testcase, vault_yaml, exp_nicknames):
             "Expected exception not raised: {}". \
             format(testcase.exp_exc_types)
 
-        assert act_nicknames == exp_nicknames
+        assert set(act_nicknames) == set(exp_nicknames)
