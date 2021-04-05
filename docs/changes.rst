@@ -28,6 +28,8 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed the increase of the development status to Beta. (issue #29)
+
 **Enhancements:**
 
 **Cleanup:**
