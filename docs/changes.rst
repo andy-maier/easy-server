@@ -17,18 +17,16 @@ Change log
 ==========
 
 
-Version 0.7.0.dev1
-------------------
+Version 0.7.0
+-------------
 
-Released: not yet
+Released: 2021-04-05
 
 **Incompatible changes:**
 
 * The 'VaultFile' class now raises 'VaultFileOpenError' for vault file
   not found. Previously, it raised 'easy_vault.EasyVaultFileError'
   (related to issue #10)
-
-**Deprecations:**
 
 **Bug fixes:**
 
@@ -54,14 +52,6 @@ Released: not yet
 * Increased minimum version of easy-vault package to 0.7.0. (issue #40)
 
 * Increased development status to Beta. (issue #29)
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/andy-maier/easy-server/issues
 
 
 Version 0.6.0
