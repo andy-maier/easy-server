@@ -27,7 +27,7 @@ from easy_server._server_file import _load_server_file
 from ..utils.simplified_test_function import simplified_test_function
 
 
-TEST_SDF_FILEPATH = 'examples/server.yml'
+TEST_SDF_FILEPATH = 'tests/testfiles/server.yml'
 TEST_SDF_FILEPATH_ABS = os.path.abspath(TEST_SDF_FILEPATH)
 
 TESTCASES_SDF_INIT = [
