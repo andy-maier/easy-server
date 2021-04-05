@@ -27,10 +27,12 @@ from easy_server._server_file import _load_server_file
 from ..utils.simplified_test_function import simplified_test_function
 
 
-TEST_SDF_FILEPATH = 'tests/testfiles/server.yml'
-TEST_SDF_FILEPATH_ABS = os.path.abspath(TEST_SDF_FILEPATH)
+TEST_SERVERFILE_FILEPATH = 'tests/testfiles/server.yml'
+TEST_SERVERFILE_FILEPATH_ABS = os.path.abspath(TEST_SERVERFILE_FILEPATH)
+TEST_VAULTFILE_FILEPATH = 'tests/testfiles/vault.yml'
+TEST_VAULTFILE_FILEPATH_ABS = os.path.abspath(TEST_VAULTFILE_FILEPATH)
 
-TESTCASES_SDF_INIT = [
+TESTCASES_SF_INIT = [
 
     # Testcases for ServerFile.__init__()
 
@@ -48,11 +50,11 @@ TESTCASES_SDF_INIT = [
         "Order of positional parameters",
         dict(
             init_args=(
-                TEST_SDF_FILEPATH,
+                TEST_SERVERFILE_FILEPATH,
             ),
             init_kwargs=dict(),
             exp_attrs={
-                'filepath': TEST_SDF_FILEPATH_ABS,
+                'filepath': TEST_SERVERFILE_FILEPATH_ABS,
             },
         ),
         None, None, True
@@ -62,10 +64,10 @@ TESTCASES_SDF_INIT = [
         dict(
             init_args=(),
             init_kwargs=dict(
-                filepath=TEST_SDF_FILEPATH,
+                filepath=TEST_SERVERFILE_FILEPATH,
             ),
             exp_attrs={
-                'filepath': TEST_SDF_FILEPATH_ABS,
+                'filepath': TEST_SERVERFILE_FILEPATH_ABS,
             },
         ),
         None, None, True
@@ -91,14 +93,28 @@ TESTCASES_SDF_INIT = [
         (ServerFileOpenError, "Cannot open server file"),
         None, True
     ),
+    (
+        "Server file that references vault file",
+        dict(
+            init_args=(),
+            init_kwargs=dict(
+                filepath=TEST_SERVERFILE_FILEPATH,
+            ),
+            exp_attrs={
+                'filepath': TEST_SERVERFILE_FILEPATH_ABS,
+                'vault_file': TEST_VAULTFILE_FILEPATH_ABS,
+            },
+        ),
+        None, None, True
+    ),
 ]
 
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SDF_INIT)
+    TESTCASES_SF_INIT)
 @simplified_test_function
-def test_SDF_init(testcase, init_args, init_kwargs, exp_attrs):
+def test_ServerFile_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for ServerFile.__init__()
     """
@@ -123,7 +139,7 @@ def test_SDF_init(testcase, init_args, init_kwargs, exp_attrs):
             format(attr_name, exp_attr_value, act_attr_value)
 
 
-TESTCASES_SDF_LOAD = [
+TESTCASES_SF_LOAD = [
 
     # Testcases for ServerFile._load_server_file()
 
@@ -442,9 +458,9 @@ TESTCASES_SDF_LOAD = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SDF_LOAD)
+    TESTCASES_SF_LOAD)
 @simplified_test_function
-def test_SDF_load(testcase, sdf_yaml, exp_data):
+def test_ServerFile_load(testcase, sdf_yaml, exp_data):
     """
     Test function for ServerFile._load_server_file()
     """
@@ -452,7 +468,7 @@ def test_SDF_load(testcase, sdf_yaml, exp_data):
     with TempDirectory() as tmp_dir:
 
         # Create the server file
-        filename = 'tmp_sdf.yaml'
+        filename = 'tmp_server.yml'
         filepath = os.path.join(tmp_dir.path, filename)
         if isinstance(sdf_yaml, six.text_type):
             sdf_yaml = sdf_yaml.encode('utf-8')
@@ -470,7 +486,7 @@ def test_SDF_load(testcase, sdf_yaml, exp_data):
         assert act_data == exp_data
 
 
-TESTCASES_SDF_GET_SERVER = [
+TESTCASES_SF_GET_SERVER = [
 
     # Testcases for ServerFile.get_server()
 
@@ -478,6 +494,7 @@ TESTCASES_SDF_GET_SERVER = [
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
     #   * sdf_yaml: Content of server file.
+    #   * vf_yaml: Content of vault file, and indicator to use in server file.
     #   * nick: nickname input parameter for get_server().
     #   * exp_attrs: Dict with expected attributes of Server result
     #     of get_server(). Keys: attribute names; values: attribute values.
@@ -489,6 +506,7 @@ TESTCASES_SDF_GET_SERVER = [
         "No servers; non-existing nickname",
         dict(
             sdf_yaml="servers: {}\n",
+            vf_yaml=None,
             nick='srv',
             exp_attrs=None,
         ),
@@ -503,6 +521,7 @@ TESTCASES_SDF_GET_SERVER = [
                      "    description: server1\n"
                      "    user_defined:\n"
                      "      stuff: 42\n",
+            vf_yaml=None,
             nick='srv',
             exp_attrs=None,
         ),
@@ -522,6 +541,7 @@ TESTCASES_SDF_GET_SERVER = [
                      "    description: group1\n"
                      "    members:\n"
                      "      - srv1\n",
+            vf_yaml=None,
             nick='srv',
             exp_attrs=None,
         ),
@@ -541,6 +561,7 @@ TESTCASES_SDF_GET_SERVER = [
                      "    description: group1\n"
                      "    members:\n"
                      "      - srv1\n",
+            vf_yaml=None,
             nick='srv1',
             exp_attrs=dict(
                 nickname='srv1',
@@ -565,28 +586,85 @@ TESTCASES_SDF_GET_SERVER = [
                      "    description: group1\n"
                      "    members:\n"
                      "      - srv1\n",
+            vf_yaml=None,
             nick='grp1',
             exp_attrs=None,
         ),
         (KeyError, "Server with nickname 'grp1' not found"),
         None, True
     ),
+    (
+        "One server with vault file, server exists in vault file",
+        dict(
+            sdf_yaml="vault_file: tmp_vault.yml\n"
+                     "servers:\n"
+                     "  srv1:\n"
+                     "    description: server1\n"
+                     "    user_defined:\n"
+                     "      stuff: 42\n",
+            vf_yaml="secrets:\n"
+                    "  srv1:\n"
+                    "    foo: bar\n",
+            nick='srv1',
+            exp_attrs=dict(
+                nickname='srv1',
+                description='server1',
+                contact_name=None,
+                access_via=None,
+                user_defined={'stuff': 42},
+                secrets={'foo': 'bar'},
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "One server with vault file, server does not exist in vault file",
+        dict(
+            sdf_yaml="vault_file: tmp_vault.yml\n"
+                     "servers:\n"
+                     "  srv1:\n"
+                     "    description: server1\n"
+                     "    user_defined:\n"
+                     "      stuff: 42\n",
+            vf_yaml="secrets:\n"
+                    "  srv2:\n"
+                    "    foo: bar\n",
+            nick='srv1',
+            exp_attrs=dict(
+                nickname='srv1',
+                description='server1',
+                contact_name=None,
+                access_via=None,
+                user_defined={'stuff': 42},
+                secrets=None,
+            ),
+        ),
+        None, None, True
+    ),
 ]
 
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SDF_GET_SERVER)
+    TESTCASES_SF_GET_SERVER)
 @simplified_test_function
-def test_SDF_get_server(testcase, sdf_yaml, nick, exp_attrs):
+def test_ServerFile_get_server(testcase, sdf_yaml, vf_yaml, nick, exp_attrs):
     """
     Test function for ServerFile.get_server()
     """
 
     with TempDirectory() as tmp_dir:
 
+        # Create the vault file, if specified
+        if vf_yaml:
+            filename = 'tmp_vault.yml'
+            filepath = os.path.join(tmp_dir.path, filename)
+            if isinstance(vf_yaml, six.text_type):
+                vf_yaml = vf_yaml.encode('utf-8')
+            tmp_dir.write(filename, vf_yaml)
+
         # Create the server file
-        filename = 'tmp_sdf.yaml'
+        filename = 'tmp_server.yml'
         filepath = os.path.join(tmp_dir.path, filename)
         if isinstance(sdf_yaml, six.text_type):
             sdf_yaml = sdf_yaml.encode('utf-8')
@@ -607,7 +685,7 @@ def test_SDF_get_server(testcase, sdf_yaml, nick, exp_attrs):
             assert getattr(act_srv, name) == exp_attrs[name]
 
 
-TESTCASES_SDF_LIST_SERVERS = [
+TESTCASES_SF_LIST_SERVERS = [
 
     # Testcases for ServerFile.list_servers()
 
@@ -847,9 +925,9 @@ TESTCASES_SDF_LIST_SERVERS = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SDF_LIST_SERVERS)
+    TESTCASES_SF_LIST_SERVERS)
 @simplified_test_function
-def test_SDF_list_servers(testcase, sdf_yaml, nick, exp_srvs_attrs):
+def test_ServerFile_list_servers(testcase, sdf_yaml, nick, exp_srvs_attrs):
     """
     Test function for ServerFile.list_servers()
     """
@@ -857,7 +935,7 @@ def test_SDF_list_servers(testcase, sdf_yaml, nick, exp_srvs_attrs):
     with TempDirectory() as tmp_dir:
 
         # Create the server file
-        filename = 'tmp_sdf.yaml'
+        filename = 'tmp_server.yml'
         filepath = os.path.join(tmp_dir.path, filename)
         if isinstance(sdf_yaml, six.text_type):
             sdf_yaml = sdf_yaml.encode('utf-8')
@@ -885,7 +963,7 @@ def test_SDF_list_servers(testcase, sdf_yaml, nick, exp_srvs_attrs):
                 assert getattr(act_sd, name) == exp_attrs[name]
 
 
-TESTCASES_SDF_LIST_DEFAULT_SERVERS = [
+TESTCASES_SF_LIST_DEFAULT_SERVERS = [
 
     # Testcases for ServerFile.list_default_servers()
 
@@ -998,9 +1076,9 @@ TESTCASES_SDF_LIST_DEFAULT_SERVERS = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SDF_LIST_DEFAULT_SERVERS)
+    TESTCASES_SF_LIST_DEFAULT_SERVERS)
 @simplified_test_function
-def test_SDF_list_default_servers(testcase, sdf_yaml, exp_srvs_attrs):
+def test_ServerFile_list_default_servers(testcase, sdf_yaml, exp_srvs_attrs):
     """
     Test function for ServerFile.list_default_servers()
     """
@@ -1008,7 +1086,7 @@ def test_SDF_list_default_servers(testcase, sdf_yaml, exp_srvs_attrs):
     with TempDirectory() as tmp_dir:
 
         # Create the server file
-        filename = 'tmp_sdf.yaml'
+        filename = 'tmp_server.yml'
         filepath = os.path.join(tmp_dir.path, filename)
         if isinstance(sdf_yaml, six.text_type):
             sdf_yaml = sdf_yaml.encode('utf-8')
@@ -1036,7 +1114,7 @@ def test_SDF_list_default_servers(testcase, sdf_yaml, exp_srvs_attrs):
                 assert getattr(act_sd, name) == exp_attrs[name]
 
 
-TESTCASES_SDF_LIST_ALL_SERVERS = [
+TESTCASES_SF_LIST_ALL_SERVERS = [
 
     # Testcases for ServerFile.list_all_servers()
 
@@ -1230,9 +1308,9 @@ TESTCASES_SDF_LIST_ALL_SERVERS = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_SDF_LIST_ALL_SERVERS)
+    TESTCASES_SF_LIST_ALL_SERVERS)
 @simplified_test_function
-def test_SDF_list_all_servers(testcase, sdf_yaml, exp_srvs_attrs):
+def test_ServerFile_list_all_servers(testcase, sdf_yaml, exp_srvs_attrs):
     """
     Test function for ServerFile.list_all_servers()
     """
@@ -1240,7 +1318,7 @@ def test_SDF_list_all_servers(testcase, sdf_yaml, exp_srvs_attrs):
     with TempDirectory() as tmp_dir:
 
         # Create the server file
-        filename = 'tmp_sdf.yaml'
+        filename = 'tmp_server.yml'
         filepath = os.path.join(tmp_dir.path, filename)
         if isinstance(sdf_yaml, six.text_type):
             sdf_yaml = sdf_yaml.encode('utf-8')
