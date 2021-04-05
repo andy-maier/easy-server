@@ -16,7 +16,7 @@
 # Direct dependencies (except pip, setuptools, wheel):
 
 # git+https://github.com/andy-maier/easy-vault.git@master#egg=easy-vault
-easy-vault>=0.6.0
+easy-vault>=0.7.0
 
 # PyYAML 5.3 removed support for Python 3.4
 # PyYAML 5.3 fixed narrow build error on Python 2.7

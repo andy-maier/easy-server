@@ -51,6 +51,8 @@ Released: not yet
 
 * Improved text coverage of 'VaultFile' class. (issue #10)
 
+* Increased minimum version of easy-vault package to 0.7.0. (issue #40)
+
 **Cleanup:**
 
 **Known issues:**
