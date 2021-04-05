@@ -27,7 +27,7 @@ from easy_server._vault_file import _load_vault_file
 from ..utils.simplified_test_function import simplified_test_function
 
 
-TEST_VAULTFILE_FILEPATH = 'examples/vault.yml'
+TEST_VAULTFILE_FILEPATH = 'tests/testfiles/vault.yml'
 TEST_VAULTFILE_FILEPATH_ABS = os.path.abspath(TEST_VAULTFILE_FILEPATH)
 
 TESTCASES_VAULTFILE_INIT = [
