@@ -250,6 +250,20 @@ class ServerFile(object):
         """
         return self._vault_file
 
+    def is_vault_file_encrypted(self):
+        """
+        Test whether the vault file is in the encrypted state.
+
+        If the server file does not specify a vault file, `None` is returned.
+
+        Returns:
+          bool: Boolean indicating whether the vault file is in the encrypted
+          state, or `None` if no vault file was specified.
+        """
+        if self._vault is None:
+            return None
+        return self._vault.is_encrypted()
+
     def get_server(self, nickname):
         """
         Get server for a given server nickname.
