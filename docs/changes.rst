@@ -24,14 +24,26 @@ Released: not yet
 
 **Incompatible changes:**
 
+* The 'VaultFile' class now raises 'VaultFileOpenError' for vault file
+  not found. Previously, it raised 'easy_vault.EasyVaultFileError'
+  (related to issue #10)
+
 **Deprecations:**
 
 **Bug fixes:**
+
+* Added missing exception transformation to 'VaultFileOpenError' for vault file
+  not found in 'VaultFile' class. (related to issue #10)
 
 **Enhancements:**
 
 * Docs: Updated usage example and example scripts to use integrated vault.
   (issue #26)
+
+* In 'VaultFile' class, the input 'filepath' is now made absolute.
+  (related to issue #10)
+
+* Improved text coverage of 'VaultFile' class. (issue #10)
 
 **Cleanup:**
 
