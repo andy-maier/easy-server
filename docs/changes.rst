@@ -43,6 +43,12 @@ Released: not yet
 * In 'VaultFile' class, the input 'filepath' is now made absolute.
   (related to issue #10)
 
+* Added a method 'VaultFile.is_encrypted()' to return whether the
+  vault file, is encrypted.
+
+* Added a method 'ServerFile.is_vault_file_encrypted()' to return whether the
+  vault file of the server file (if any) is encrypted.
+
 * Improved text coverage of 'VaultFile' class. (issue #10)
 
 **Cleanup:**

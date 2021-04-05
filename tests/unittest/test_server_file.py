@@ -17,20 +17,23 @@ Test the _server_file.py module.
 from __future__ import absolute_import, print_function
 import os
 import pytest
-from testfixtures import TempDirectory
-import six
-from easy_server import ServerFile, \
-    ServerFileFormatError, ServerFileOpenError
+from easy_server import ServerFile, ServerFileFormatError, ServerFileOpenError
 # White box testing: We test an internal function
 from easy_server._server_file import _load_server_file
 
 from ..utils.simplified_test_function import simplified_test_function
+from ..utils.server_file_utils import easy_server_file
 
 
 TEST_SERVERFILE_FILEPATH = 'tests/testfiles/server.yml'
 TEST_SERVERFILE_FILEPATH_ABS = os.path.abspath(TEST_SERVERFILE_FILEPATH)
 TEST_VAULTFILE_FILEPATH = 'tests/testfiles/vault.yml'
 TEST_VAULTFILE_FILEPATH_ABS = os.path.abspath(TEST_VAULTFILE_FILEPATH)
+
+# Standard server and vault files that are dynamically created for testing:
+TEST_SERVER_FILENAME = 'server.yml'
+TEST_VAULT_FILENAME = 'vault.yml'
+TEST_VAULT_PASSWORD = 'vault'
 
 TESTCASES_SF_INIT = [
 
@@ -41,7 +44,7 @@ TESTCASES_SF_INIT = [
     # * kwargs: Keyword arguments for the test function:
     #   * init_args: Tuple of positional arguments to ServerFile().
     #   * init_kwargs: Dict of keyword arguments to ServerFile().
-    #   * exp_attrs: Dict with expected ServerFile attributes.
+    #   * exp_serverfile_attrs: Dict with expected ServerFile attributes.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -53,7 +56,7 @@ TESTCASES_SF_INIT = [
                 TEST_SERVERFILE_FILEPATH,
             ),
             init_kwargs=dict(),
-            exp_attrs={
+            exp_serverfile_attrs={
                 'filepath': TEST_SERVERFILE_FILEPATH_ABS,
             },
         ),
@@ -66,7 +69,7 @@ TESTCASES_SF_INIT = [
             init_kwargs=dict(
                 filepath=TEST_SERVERFILE_FILEPATH,
             ),
-            exp_attrs={
+            exp_serverfile_attrs={
                 'filepath': TEST_SERVERFILE_FILEPATH_ABS,
             },
         ),
@@ -77,7 +80,7 @@ TESTCASES_SF_INIT = [
         dict(
             init_args=(),
             init_kwargs=dict(),
-            exp_attrs=None,
+            exp_serverfile_attrs=None,
         ),
         TypeError, None, True
     ),
@@ -88,7 +91,7 @@ TESTCASES_SF_INIT = [
             init_kwargs=dict(
                 filepath='invalid_file',
             ),
-            exp_attrs=None,
+            exp_serverfile_attrs=None,
         ),
         (ServerFileOpenError, "Cannot open server file"),
         None, True
@@ -100,7 +103,7 @@ TESTCASES_SF_INIT = [
             init_kwargs=dict(
                 filepath=TEST_SERVERFILE_FILEPATH,
             ),
-            exp_attrs={
+            exp_serverfile_attrs={
                 'filepath': TEST_SERVERFILE_FILEPATH_ABS,
                 'vault_file': TEST_VAULTFILE_FILEPATH_ABS,
             },
@@ -114,7 +117,8 @@ TESTCASES_SF_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_SF_INIT)
 @simplified_test_function
-def test_ServerFile_init(testcase, init_args, init_kwargs, exp_attrs):
+def test_ServerFile_init(
+        testcase, init_args, init_kwargs, exp_serverfile_attrs):
     """
     Test function for ServerFile.__init__()
     """
@@ -128,8 +132,8 @@ def test_ServerFile_init(testcase, init_args, init_kwargs, exp_attrs):
         "Expected exception not raised: {}". \
         format(testcase.exp_exc_types)
 
-    for attr_name in exp_attrs:
-        exp_attr_value = exp_attrs[attr_name]
+    for attr_name in exp_serverfile_attrs:
+        exp_attr_value = exp_serverfile_attrs[attr_name]
         assert hasattr(act_obj, attr_name), \
             "Missing attribute {0!r} in returned ServerFile object". \
             format(attr_name)
@@ -146,7 +150,11 @@ TESTCASES_SF_LOAD = [
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * sdf_yaml: Content of server file.
+    #   * server_filename: Filename of server file to be created.
+    #   * server_yaml: Content of server file.
+    #   * vault_filename: Filename of vault file to be created, or None.
+    #   * vault_yaml: Content of vault file, or None.
+    #   * vault_password: Password for encryption of vault file, or None.
     #   * exp_data: Expected result of _load_server_file()
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
@@ -156,7 +164,11 @@ TESTCASES_SF_LOAD = [
     (
         "Empty file: Missing required elements",
         dict(
-            sdf_yaml="",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -166,9 +178,13 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid YAML syntax: Mixing list and dict",
         dict(
-            sdf_yaml="servers:\n"
-                     "  - foo\n"
-                     "  bar:\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  - foo\n"
+                        "  bar:\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError, "Invalid YAML syntax"),
@@ -177,8 +193,12 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid top-level type list",
         dict(
-            sdf_yaml="- servers: {}\n"
-                     "- server_groups: {}\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="- servers: {}\n"
+                        "- server_groups: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -188,7 +208,11 @@ TESTCASES_SF_LOAD = [
     (
         "Missing required 'servers' element",
         dict(
-            sdf_yaml="server_groups: {}\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="server_groups: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -199,8 +223,12 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid type for 'servers' element: list",
         dict(
-            sdf_yaml="servers:\n"
-                     "  - foo\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  - foo\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -210,7 +238,11 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid type for 'servers' element: string",
         dict(
-            sdf_yaml="servers: bla\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: bla\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -220,8 +252,12 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid type for 'server_groups' element: list",
         dict(
-            sdf_yaml="servers: {}\n"
-                     "server_groups: []\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n"
+                        "server_groups: []\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -232,8 +268,12 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid type for 'server_groups' element: string",
         dict(
-            sdf_yaml="servers: {}\n"
-                     "server_groups: bla\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n"
+                        "server_groups: bla\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -244,9 +284,13 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid type of server group",
         dict(
-            sdf_yaml="servers: {}\n"
-                     "server_groups:\n"
-                     "  grp1: invalid\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n"
+                        "server_groups:\n"
+                        "  grp1: invalid\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -257,10 +301,14 @@ TESTCASES_SF_LOAD = [
     (
         "Missing required element 'description' in server group",
         dict(
-            sdf_yaml="servers: {}\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    members: []\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    members: []\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -271,11 +319,15 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid type for element 'description' in server group: list",
         dict(
-            sdf_yaml="servers: {}\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: []\n"
-                     "    members: []\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: []\n"
+                        "    members: []\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -286,10 +338,14 @@ TESTCASES_SF_LOAD = [
     (
         "Missing required element 'members' in server group",
         dict(
-            sdf_yaml="servers: {}\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: desc1\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: desc1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -300,11 +356,15 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid type for element 'members' in server group: string",
         dict(
-            sdf_yaml="servers: {}\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: desc1\n"
-                     "    members: invalid\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: desc1\n"
+                        "    members: invalid\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -315,12 +375,16 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid type for server group member: dict",
         dict(
-            sdf_yaml="servers: {}\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: desc1\n"
-                     "    members:\n"
-                     "      - {}\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: desc1\n"
+                        "    members:\n"
+                        "      - {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -331,9 +395,13 @@ TESTCASES_SF_LOAD = [
     (
         "Invalid default null",
         dict(
-            sdf_yaml="servers: {}\n"
-                     "server_groups: {}\n"
-                     "default: null\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n"
+                        "server_groups: {}\n"
+                        "default: null\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -346,12 +414,16 @@ TESTCASES_SF_LOAD = [
     (
         "Server group member nickname not found",
         dict(
-            sdf_yaml="servers: {}\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: desc1\n"
-                     "    members:\n"
-                     "      - srv1\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: desc1\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -361,17 +433,21 @@ TESTCASES_SF_LOAD = [
     (
         "Default nickname not found",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: desc1\n"
-                     "    members:\n"
-                     "      - srv1\n"
-                     "default: srv\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: desc1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "default: srv\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -383,7 +459,11 @@ TESTCASES_SF_LOAD = [
     (
         "Valid file with no servers and server_group+default omitted",
         dict(
-            sdf_yaml="servers: {}\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data={
                 'servers': {},
                 'server_groups': {},
@@ -396,12 +476,16 @@ TESTCASES_SF_LOAD = [
     (
         "Valid file with one server that is default",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "default: srv1\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "default: srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data={
                 'servers': {
                     'srv1': {
@@ -421,17 +505,21 @@ TESTCASES_SF_LOAD = [
     (
         "Valid file with one server and one server group that is default",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n"
-                     "default: grp1\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "default: grp1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             exp_data={
                 'servers': {
                     'srv1': {
@@ -460,22 +548,19 @@ TESTCASES_SF_LOAD = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_SF_LOAD)
 @simplified_test_function
-def test_ServerFile_load(testcase, sdf_yaml, exp_data):
+def test_ServerFile_load(
+        testcase, server_filename, server_yaml, vault_filename, vault_yaml,
+        vault_password, exp_data):
     """
     Test function for ServerFile._load_server_file()
     """
 
-    with TempDirectory() as tmp_dir:
-
-        # Create the server file
-        filename = 'tmp_server.yml'
-        filepath = os.path.join(tmp_dir.path, filename)
-        if isinstance(sdf_yaml, six.text_type):
-            sdf_yaml = sdf_yaml.encode('utf-8')
-        tmp_dir.write(filename, sdf_yaml)
+    with easy_server_file(
+            server_filename, server_yaml, vault_filename, vault_yaml,
+            vault_password) as server_filepath:
 
         # The code to be tested
-        act_data = _load_server_file(filepath)
+        act_data = _load_server_file(server_filepath)
 
         # Ensure that exceptions raised in the remainder of this function
         # are not mistaken as expected exceptions
@@ -486,6 +571,106 @@ def test_ServerFile_load(testcase, sdf_yaml, exp_data):
         assert act_data == exp_data
 
 
+TESTCASES_SF_IS_VAULT_FILE_ENCRYPTED = [
+
+    # Testcases for ServerFile.is_vault_file_encrypted()
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * server_filename: Filename of server file to be created.
+    #   * server_yaml: Content of server file.
+    #   * vault_filename: Filename of vault file to be created, or None.
+    #   * vault_yaml: Content of vault file, or None.
+    #   * vault_password: Password for encryption of vault file, or None.
+    #   * exp_result: Expected return valoue of is_vault_file_encrypted().
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "No vault file",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_encrypted=None,
+        ),
+        None, None, True
+    ),
+    (
+        "Decrypted vault file, no password",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="vault_file: {vfn}\n"
+                        "servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n". \
+                        format(vfn=TEST_VAULT_FILENAME),
+            vault_filename=TEST_VAULT_FILENAME,
+            vault_yaml="secrets:\n"
+                       "  srv1:\n"
+                       "    foo: bar\n",
+            vault_password=None,
+            exp_encrypted=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Encrypted vault file, with correct password",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="vault_file: {vfn}\n"
+                        "servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n". \
+                        format(vfn=TEST_VAULT_FILENAME),
+            vault_filename=TEST_VAULT_FILENAME,
+            vault_yaml="secrets:\n"
+                       "  srv1:\n"
+                       "    foo: bar\n",
+            vault_password=TEST_VAULT_PASSWORD,
+            exp_encrypted=True,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_SF_IS_VAULT_FILE_ENCRYPTED)
+@simplified_test_function
+def test_SF_is_vault_file_encrypted(
+        testcase, server_filename, server_yaml, vault_filename, vault_yaml,
+        vault_password, exp_encrypted):
+    """
+    Test function for ServerFile.is_vault_file_encrypted()
+    """
+
+    with easy_server_file(
+            server_filename, server_yaml, vault_filename, vault_yaml,
+            vault_password) as server_filepath:
+
+        esf = ServerFile(server_filepath, vault_password, use_keyring=False,
+                         use_prompting=False)
+
+        # The code to be tested
+        act_encrypted = esf.is_vault_file_encrypted()
+
+        # Ensure that exceptions raised in the remainder of this function
+        # are not mistaken as expected exceptions
+        assert testcase.exp_exc_types is None, \
+            "Expected exception not raised: {}". \
+            format(testcase.exp_exc_types)
+
+        assert act_encrypted == exp_encrypted
+
+
 TESTCASES_SF_GET_SERVER = [
 
     # Testcases for ServerFile.get_server()
@@ -493,11 +678,14 @@ TESTCASES_SF_GET_SERVER = [
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * sdf_yaml: Content of server file.
-    #   * vf_yaml: Content of vault file, and indicator to use in server file.
+    #   * server_filename: Filename of server file to be created.
+    #   * server_yaml: Content of server file.
+    #   * vault_filename: Filename of vault file to be created, or None.
+    #   * vault_yaml: Content of vault file, or None.
+    #   * vault_password: Password for encryption of vault file, or None.
     #   * nick: nickname input parameter for get_server().
-    #   * exp_attrs: Dict with expected attributes of Server result
-    #     of get_server(). Keys: attribute names; values: attribute values.
+    #   * exp_server_attrs: Dict with expected attributes of Server result
+    #     of get_server().
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -505,10 +693,13 @@ TESTCASES_SF_GET_SERVER = [
     (
         "No servers; non-existing nickname",
         dict(
-            sdf_yaml="servers: {}\n",
-            vf_yaml=None,
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='srv',
-            exp_attrs=None,
+            exp_server_attrs=None,
         ),
         (KeyError, "Server with nickname 'srv' not found"),
         None, True
@@ -516,14 +707,17 @@ TESTCASES_SF_GET_SERVER = [
     (
         "One server; non-existing nickname",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n",
-            vf_yaml=None,
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='srv',
-            exp_attrs=None,
+            exp_server_attrs=None,
         ),
         (KeyError, "Server with nickname 'srv' not found"),
         None, True
@@ -531,19 +725,22 @@ TESTCASES_SF_GET_SERVER = [
     (
         "One server group with one server; non-existing nickname",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n",
-            vf_yaml=None,
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='srv',
-            exp_attrs=None,
+            exp_server_attrs=None,
         ),
         (KeyError, "Server with nickname 'srv' not found"),
         None, True
@@ -551,19 +748,22 @@ TESTCASES_SF_GET_SERVER = [
     (
         "One server group with one server; existing server nickname",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n",
-            vf_yaml=None,
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='srv1',
-            exp_attrs=dict(
+            exp_server_attrs=dict(
                 nickname='srv1',
                 description='server1',
                 contact_name=None,
@@ -576,19 +776,22 @@ TESTCASES_SF_GET_SERVER = [
     (
         "One server group with one server; existing group nickname",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n",
-            vf_yaml=None,
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='grp1',
-            exp_attrs=None,
+            exp_server_attrs=None,
         ),
         (KeyError, "Server with nickname 'grp1' not found"),
         None, True
@@ -596,48 +799,78 @@ TESTCASES_SF_GET_SERVER = [
     (
         "One server with vault file, server exists in vault file",
         dict(
-            sdf_yaml="vault_file: tmp_vault.yml\n"
-                     "servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n",
-            vf_yaml="secrets:\n"
-                    "  srv1:\n"
-                    "    foo: bar\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="vault_file: {vfn}\n"
+                        "servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n".format(vfn=TEST_VAULT_FILENAME),
+            vault_filename=TEST_VAULT_FILENAME,
+            vault_yaml="secrets:\n"
+                       "  srv1:\n"
+                       "    foo: bar\n",
+            vault_password=None,
             nick='srv1',
-            exp_attrs=dict(
+            exp_server_attrs=dict(
                 nickname='srv1',
                 description='server1',
                 contact_name=None,
                 access_via=None,
                 user_defined={'stuff': 42},
-                secrets={'foo': 'bar'},
-            ),
+                secrets={'foo': 'bar'}),
         ),
         None, None, True
     ),
     (
         "One server with vault file, server does not exist in vault file",
         dict(
-            sdf_yaml="vault_file: tmp_vault.yml\n"
-                     "servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n",
-            vf_yaml="secrets:\n"
-                    "  srv2:\n"
-                    "    foo: bar\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="vault_file: {vfn}\n"
+                        "servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n".format(vfn=TEST_VAULT_FILENAME),
+            vault_filename=TEST_VAULT_FILENAME,
+            vault_yaml="secrets:\n"
+                       "  srv2:\n"
+                       "    foo: bar\n",
+            vault_password=None,
             nick='srv1',
-            exp_attrs=dict(
+            exp_server_attrs=dict(
                 nickname='srv1',
                 description='server1',
                 contact_name=None,
                 access_via=None,
                 user_defined={'stuff': 42},
-                secrets=None,
-            ),
+                secrets=None),
+        ),
+        None, None, True
+    ),
+    (
+        "One server with encrypted vault file",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="vault_file: {vfn}\n"
+                        "servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n".format(vfn=TEST_VAULT_FILENAME),
+            vault_filename=TEST_VAULT_FILENAME,
+            vault_yaml="secrets:\n"
+                       "  srv1:\n"
+                       "    foo: bar\n",
+            vault_password=TEST_VAULT_PASSWORD,
+            nick='srv1',
+            exp_server_attrs=dict(
+                nickname='srv1',
+                description='server1',
+                contact_name=None,
+                access_via=None,
+                user_defined={'stuff': 42},
+                secrets={'foo': 'bar'}),
         ),
         None, None, True
     ),
@@ -648,32 +881,22 @@ TESTCASES_SF_GET_SERVER = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_SF_GET_SERVER)
 @simplified_test_function
-def test_ServerFile_get_server(testcase, sdf_yaml, vf_yaml, nick, exp_attrs):
+def test_ServerFile_get_server(
+        testcase, server_filename, server_yaml, vault_filename, vault_yaml,
+        vault_password, nick, exp_server_attrs):
     """
     Test function for ServerFile.get_server()
     """
 
-    with TempDirectory() as tmp_dir:
+    with easy_server_file(
+            server_filename, server_yaml, vault_filename, vault_yaml,
+            vault_password) as server_filepath:
 
-        # Create the vault file, if specified
-        if vf_yaml:
-            filename = 'tmp_vault.yml'
-            filepath = os.path.join(tmp_dir.path, filename)
-            if isinstance(vf_yaml, six.text_type):
-                vf_yaml = vf_yaml.encode('utf-8')
-            tmp_dir.write(filename, vf_yaml)
-
-        # Create the server file
-        filename = 'tmp_server.yml'
-        filepath = os.path.join(tmp_dir.path, filename)
-        if isinstance(sdf_yaml, six.text_type):
-            sdf_yaml = sdf_yaml.encode('utf-8')
-        tmp_dir.write(filename, sdf_yaml)
-
-        sdf = ServerFile(filepath)
+        esf = ServerFile(server_filepath, vault_password, use_keyring=False,
+                         use_prompting=False)
 
         # The code to be tested
-        act_srv = sdf.get_server(nick)
+        act_srv = esf.get_server(nick)
 
         # Ensure that exceptions raised in the remainder of this function
         # are not mistaken as expected exceptions
@@ -681,8 +904,8 @@ def test_ServerFile_get_server(testcase, sdf_yaml, vf_yaml, nick, exp_attrs):
             "Expected exception not raised: {}". \
             format(testcase.exp_exc_types)
 
-        for name in exp_attrs:
-            assert getattr(act_srv, name) == exp_attrs[name]
+        for name in exp_server_attrs:
+            assert getattr(act_srv, name) == exp_server_attrs[name]
 
 
 TESTCASES_SF_LIST_SERVERS = [
@@ -692,11 +915,14 @@ TESTCASES_SF_LIST_SERVERS = [
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * sdf_yaml: Content of server file.
+    #   * server_filename: Filename of server file to be created.
+    #   * server_yaml: Content of server file.
+    #   * vault_filename: Filename of vault file to be created, or None.
+    #   * vault_yaml: Content of vault file, or None.
+    #   * vault_password: Password for encryption of vault file, or None.
     #   * nick: nickname input parameter for list_servers().
-    #   * exp_srvs_attrs: List of dicts with expected attributes of
+    #   * exp_servers_attrs: List of dicts with expected attributes of
     #     Server objects in the result of list_servers().
-    #     Keys: attr names; values: attr values.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -704,9 +930,13 @@ TESTCASES_SF_LIST_SERVERS = [
     (
         "No servers; non-existing nickname",
         dict(
-            sdf_yaml="servers: {}\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='srv',
-            exp_srvs_attrs=None,
+            exp_servers_attrs=None,
         ),
         (KeyError, "Server or server group with nickname 'srv' not found"),
         None, True
@@ -714,13 +944,17 @@ TESTCASES_SF_LIST_SERVERS = [
     (
         "One server; non-existing nickname",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='srv',
-            exp_srvs_attrs=None,
+            exp_servers_attrs=None,
         ),
         (KeyError, "Server or server group with nickname 'srv' not found"),
         None, True
@@ -728,18 +962,22 @@ TESTCASES_SF_LIST_SERVERS = [
     (
         "One server group with one server; non-existing nickname",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='srv',
-            exp_srvs_attrs=None,
+            exp_servers_attrs=None,
         ),
         (KeyError, "Server or server group with nickname 'srv' not found"),
         None, True
@@ -747,18 +985,22 @@ TESTCASES_SF_LIST_SERVERS = [
     (
         "One server group with one server; existing server nickname",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='srv1',
-            exp_srvs_attrs=[
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -773,18 +1015,22 @@ TESTCASES_SF_LIST_SERVERS = [
     (
         "One server group with one server; existing group nickname",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='grp1',
-            exp_srvs_attrs=[
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -799,23 +1045,27 @@ TESTCASES_SF_LIST_SERVERS = [
     (
         "One server group with two servers; existing group nickname",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "  srv2:\n"
-                     "    description: server2\n"
-                     "    user_defined:\n"
-                     "      stuff: 43\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n"
-                     "      - srv2\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "  srv2:\n"
+                        "    description: server2\n"
+                        "    user_defined:\n"
+                        "      stuff: 43\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "      - srv2\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='grp1',
-            exp_srvs_attrs=[
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -837,27 +1087,31 @@ TESTCASES_SF_LIST_SERVERS = [
     (
         "Nested server groups 2 levels deep; existing group nickname",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "  srv2:\n"
-                     "    description: server2\n"
-                     "    user_defined:\n"
-                     "      stuff: 43\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n"
-                     "  grp2:\n"
-                     "    description: group2\n"
-                     "    members:\n"
-                     "      - grp1\n"
-                     "      - srv2\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "  srv2:\n"
+                        "    description: server2\n"
+                        "    user_defined:\n"
+                        "      stuff: 43\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "  grp2:\n"
+                        "    description: group2\n"
+                        "    members:\n"
+                        "      - grp1\n"
+                        "      - srv2\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='grp2',
-            exp_srvs_attrs=[
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -880,28 +1134,32 @@ TESTCASES_SF_LIST_SERVERS = [
         "Nested server groups 2 levels deep; existing group nickname and "
         "multiple group memberships",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "  srv2:\n"
-                     "    description: server2\n"
-                     "    user_defined:\n"
-                     "      stuff: 43\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n"
-                     "  grp2:\n"
-                     "    description: group2\n"
-                     "    members:\n"
-                     "      - grp1\n"
-                     "      - srv1\n"
-                     "      - srv2\n",
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "  srv2:\n"
+                        "    description: server2\n"
+                        "    user_defined:\n"
+                        "      stuff: 43\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "  grp2:\n"
+                        "    description: group2\n"
+                        "    members:\n"
+                        "      - grp1\n"
+                        "      - srv1\n"
+                        "      - srv2\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
             nick='grp2',
-            exp_srvs_attrs=[
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -927,24 +1185,22 @@ TESTCASES_SF_LIST_SERVERS = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_SF_LIST_SERVERS)
 @simplified_test_function
-def test_ServerFile_list_servers(testcase, sdf_yaml, nick, exp_srvs_attrs):
+def test_ServerFile_list_servers(
+        testcase, server_filename, server_yaml, vault_filename, vault_yaml,
+        vault_password, nick, exp_servers_attrs):
     """
     Test function for ServerFile.list_servers()
     """
 
-    with TempDirectory() as tmp_dir:
+    with easy_server_file(
+            server_filename, server_yaml, vault_filename, vault_yaml,
+            vault_password) as server_filepath:
 
-        # Create the server file
-        filename = 'tmp_server.yml'
-        filepath = os.path.join(tmp_dir.path, filename)
-        if isinstance(sdf_yaml, six.text_type):
-            sdf_yaml = sdf_yaml.encode('utf-8')
-        tmp_dir.write(filename, sdf_yaml)
-
-        sdf = ServerFile(filepath)
+        esf = ServerFile(server_filepath, vault_password, use_keyring=False,
+                         use_prompting=False)
 
         # The code to be tested
-        act_sds = sdf.list_servers(nick)
+        act_sds = esf.list_servers(nick)
 
         # Ensure that exceptions raised in the remainder of this function
         # are not mistaken as expected exceptions
@@ -952,15 +1208,15 @@ def test_ServerFile_list_servers(testcase, sdf_yaml, nick, exp_srvs_attrs):
             "Expected exception not raised: {}". \
             format(testcase.exp_exc_types)
 
-        assert len(exp_srvs_attrs) == len(act_sds)
+        assert len(exp_servers_attrs) == len(act_sds)
 
-        sorted_exp_srvs_attrs = sorted(
-            exp_srvs_attrs, key=lambda x: x['nickname'])
+        sorted_exp_servers_attrs = sorted(
+            exp_servers_attrs, key=lambda x: x['nickname'])
         sorted_act_sds = sorted(act_sds, key=lambda x: x.nickname)
-        for i, exp_attrs in enumerate(sorted_exp_srvs_attrs):
+        for i, exp_server_attrs in enumerate(sorted_exp_servers_attrs):
             act_sd = sorted_act_sds[i]
-            for name in exp_attrs:
-                assert getattr(act_sd, name) == exp_attrs[name]
+            for name in exp_server_attrs:
+                assert getattr(act_sd, name) == exp_server_attrs[name]
 
 
 TESTCASES_SF_LIST_DEFAULT_SERVERS = [
@@ -970,10 +1226,13 @@ TESTCASES_SF_LIST_DEFAULT_SERVERS = [
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * sdf_yaml: Content of server file.
-    #   * exp_srvs_attrs: List of dicts with expected attributes of
-    #     Server objects in the result of list_servers().
-    #     Keys: attr names; values: attr values.
+    #   * server_filename: Filename of server file to be created.
+    #   * server_yaml: Content of server file.
+    #   * vault_filename: Filename of vault file to be created, or None.
+    #   * vault_yaml: Content of vault file, or None.
+    #   * vault_password: Password for encryption of vault file, or None.
+    #   * exp_servers_attrs: List of dicts with expected attributes of
+    #     Server objects in the result of list_default_servers().
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -981,33 +1240,45 @@ TESTCASES_SF_LIST_DEFAULT_SERVERS = [
     (
         "No servers, no default",
         dict(
-            sdf_yaml="servers: {}\n",
-            exp_srvs_attrs=[],
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[],
         ),
         None, None, True
     ),
     (
         "One server; no default",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n",
-            exp_srvs_attrs=[],
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[],
         ),
         None, None, True
     ),
     (
         "One server; with default",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "default: srv1\n",
-            exp_srvs_attrs=[
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "default: srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -1022,18 +1293,22 @@ TESTCASES_SF_LIST_DEFAULT_SERVERS = [
     (
         "One server group with one server; server is default",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n"
-                     "default: srv1\n",
-            exp_srvs_attrs=[
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "default: srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -1048,18 +1323,22 @@ TESTCASES_SF_LIST_DEFAULT_SERVERS = [
     (
         "One server group with one server; group is default",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n"
-                     "default: grp1\n",
-            exp_srvs_attrs=[
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "default: grp1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -1078,24 +1357,22 @@ TESTCASES_SF_LIST_DEFAULT_SERVERS = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_SF_LIST_DEFAULT_SERVERS)
 @simplified_test_function
-def test_ServerFile_list_default_servers(testcase, sdf_yaml, exp_srvs_attrs):
+def test_ServerFile_list_default_servers(
+        testcase, server_filename, server_yaml, vault_filename, vault_yaml,
+        vault_password, exp_servers_attrs):
     """
     Test function for ServerFile.list_default_servers()
     """
 
-    with TempDirectory() as tmp_dir:
+    with easy_server_file(
+            server_filename, server_yaml, vault_filename, vault_yaml,
+            vault_password) as server_filepath:
 
-        # Create the server file
-        filename = 'tmp_server.yml'
-        filepath = os.path.join(tmp_dir.path, filename)
-        if isinstance(sdf_yaml, six.text_type):
-            sdf_yaml = sdf_yaml.encode('utf-8')
-        tmp_dir.write(filename, sdf_yaml)
-
-        sdf = ServerFile(filepath)
+        esf = ServerFile(server_filepath, vault_password, use_keyring=False,
+                         use_prompting=False)
 
         # The code to be tested
-        act_sds = sdf.list_default_servers()
+        act_sds = esf.list_default_servers()
 
         # Ensure that exceptions raised in the remainder of this function
         # are not mistaken as expected exceptions
@@ -1103,15 +1380,15 @@ def test_ServerFile_list_default_servers(testcase, sdf_yaml, exp_srvs_attrs):
             "Expected exception not raised: {}". \
             format(testcase.exp_exc_types)
 
-        assert len(exp_srvs_attrs) == len(act_sds)
+        assert len(exp_servers_attrs) == len(act_sds)
 
-        sorted_exp_srvs_attrs = sorted(
-            exp_srvs_attrs, key=lambda x: x['nickname'])
+        sorted_exp_servers_attrs = sorted(
+            exp_servers_attrs, key=lambda x: x['nickname'])
         sorted_act_sds = sorted(act_sds, key=lambda x: x.nickname)
-        for i, exp_attrs in enumerate(sorted_exp_srvs_attrs):
+        for i, exp_server_attrs in enumerate(sorted_exp_servers_attrs):
             act_sd = sorted_act_sds[i]
-            for name in exp_attrs:
-                assert getattr(act_sd, name) == exp_attrs[name]
+            for name in exp_server_attrs:
+                assert getattr(act_sd, name) == exp_server_attrs[name]
 
 
 TESTCASES_SF_LIST_ALL_SERVERS = [
@@ -1121,10 +1398,13 @@ TESTCASES_SF_LIST_ALL_SERVERS = [
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * sdf_yaml: Content of server file.
-    #   * exp_srvs_attrs: List of dicts with expected attributes of
-    #     Server objects in the result of list_servers().
-    #     Keys: attr names; values: attr values.
+    #   * server_filename: Filename of server file to be created.
+    #   * server_yaml: Content of server file.
+    #   * vault_filename: Filename of vault file to be created, or None.
+    #   * vault_yaml: Content of vault file, or None.
+    #   * vault_password: Password for encryption of vault file, or None.
+    #   * exp_servers_attrs: List of dicts with expected attributes of
+    #     Server objects in the result of list_all_servers().
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -1132,20 +1412,28 @@ TESTCASES_SF_LIST_ALL_SERVERS = [
     (
         "No servers",
         dict(
-            sdf_yaml="servers: {}\n",
-            exp_srvs_attrs=[],
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[],
         ),
         None, None, True
     ),
     (
         "One server",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n",
-            exp_srvs_attrs=[
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -1160,17 +1448,21 @@ TESTCASES_SF_LIST_ALL_SERVERS = [
     (
         "One server group with one server",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n",
-            exp_srvs_attrs=[
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -1185,22 +1477,26 @@ TESTCASES_SF_LIST_ALL_SERVERS = [
     (
         "One server group with two servers",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "  srv2:\n"
-                     "    description: server2\n"
-                     "    user_defined:\n"
-                     "      stuff: 43\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n"
-                     "      - srv2\n",
-            exp_srvs_attrs=[
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "  srv2:\n"
+                        "    description: server2\n"
+                        "    user_defined:\n"
+                        "      stuff: 43\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "      - srv2\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -1222,26 +1518,30 @@ TESTCASES_SF_LIST_ALL_SERVERS = [
     (
         "Nested server groups 2 levels deep with two servers total",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "  srv2:\n"
-                     "    description: server2\n"
-                     "    user_defined:\n"
-                     "      stuff: 43\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n"
-                     "  grp2:\n"
-                     "    description: group2\n"
-                     "    members:\n"
-                     "      - grp1\n"
-                     "      - srv2\n",
-            exp_srvs_attrs=[
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "  srv2:\n"
+                        "    description: server2\n"
+                        "    user_defined:\n"
+                        "      stuff: 43\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "  grp2:\n"
+                        "    description: group2\n"
+                        "    members:\n"
+                        "      - grp1\n"
+                        "      - srv2\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -1264,27 +1564,31 @@ TESTCASES_SF_LIST_ALL_SERVERS = [
         "Nested server groups 2 levels deep with two servers total and "
         "multiple group memberships",
         dict(
-            sdf_yaml="servers:\n"
-                     "  srv1:\n"
-                     "    description: server1\n"
-                     "    user_defined:\n"
-                     "      stuff: 42\n"
-                     "  srv2:\n"
-                     "    description: server2\n"
-                     "    user_defined:\n"
-                     "      stuff: 43\n"
-                     "server_groups:\n"
-                     "  grp1:\n"
-                     "    description: group1\n"
-                     "    members:\n"
-                     "      - srv1\n"
-                     "  grp2:\n"
-                     "    description: group2\n"
-                     "    members:\n"
-                     "      - grp1\n"
-                     "      - srv1\n"
-                     "      - srv2\n",
-            exp_srvs_attrs=[
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      stuff: 42\n"
+                        "  srv2:\n"
+                        "    description: server2\n"
+                        "    user_defined:\n"
+                        "      stuff: 43\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "  grp2:\n"
+                        "    description: group2\n"
+                        "    members:\n"
+                        "      - grp1\n"
+                        "      - srv1\n"
+                        "      - srv2\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            exp_servers_attrs=[
                 dict(
                     nickname='srv1',
                     description='server1',
@@ -1310,24 +1614,22 @@ TESTCASES_SF_LIST_ALL_SERVERS = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_SF_LIST_ALL_SERVERS)
 @simplified_test_function
-def test_ServerFile_list_all_servers(testcase, sdf_yaml, exp_srvs_attrs):
+def test_ServerFile_list_all_servers(
+        testcase, server_filename, server_yaml, vault_filename, vault_yaml,
+        vault_password, exp_servers_attrs):
     """
     Test function for ServerFile.list_all_servers()
     """
 
-    with TempDirectory() as tmp_dir:
+    with easy_server_file(
+            server_filename, server_yaml, vault_filename, vault_yaml,
+            vault_password) as server_filepath:
 
-        # Create the server file
-        filename = 'tmp_server.yml'
-        filepath = os.path.join(tmp_dir.path, filename)
-        if isinstance(sdf_yaml, six.text_type):
-            sdf_yaml = sdf_yaml.encode('utf-8')
-        tmp_dir.write(filename, sdf_yaml)
-
-        sdf = ServerFile(filepath)
+        esf = ServerFile(server_filepath, vault_password, use_keyring=False,
+                         use_prompting=False)
 
         # The code to be tested
-        act_sds = sdf.list_all_servers()
+        act_sds = esf.list_all_servers()
 
         # Ensure that exceptions raised in the remainder of this function
         # are not mistaken as expected exceptions
@@ -1335,12 +1637,12 @@ def test_ServerFile_list_all_servers(testcase, sdf_yaml, exp_srvs_attrs):
             "Expected exception not raised: {}". \
             format(testcase.exp_exc_types)
 
-        assert len(exp_srvs_attrs) == len(act_sds)
+        assert len(exp_servers_attrs) == len(act_sds)
 
-        sorted_exp_srvs_attrs = sorted(
-            exp_srvs_attrs, key=lambda x: x['nickname'])
+        sorted_exp_servers_attrs = sorted(
+            exp_servers_attrs, key=lambda x: x['nickname'])
         sorted_act_sds = sorted(act_sds, key=lambda x: x.nickname)
-        for i, exp_attrs in enumerate(sorted_exp_srvs_attrs):
+        for i, exp_server_attrs in enumerate(sorted_exp_servers_attrs):
             act_sd = sorted_act_sds[i]
-            for name in exp_attrs:
-                assert getattr(act_sd, name) == exp_attrs[name]
+            for name in exp_server_attrs:
+                assert getattr(act_sd, name) == exp_server_attrs[name]

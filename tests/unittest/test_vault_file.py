@@ -140,7 +140,7 @@ TESTCASES_VAULTFILE_LOAD = [
     # * kwargs: Keyword arguments for the test function:
     #   * vault_yaml: Content of vault file.
     #   * password: Password for encryption (and flag to be encrypted)
-    #   * exp_data: Expected result of _load_vault_file()
+    #   * exp_data, exp_encrypted: Expected result of _load_vault_file()
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -152,6 +152,7 @@ TESTCASES_VAULTFILE_LOAD = [
             vault_yaml="",
             password=None,
             exp_data=None,
+            exp_encrypted=None,
         ),
         (VaultFileFormatError,
          "Validation failed on top-level element.* is not of type 'object'"),
@@ -165,6 +166,7 @@ TESTCASES_VAULTFILE_LOAD = [
                        "  bar:\n",
             password=None,
             exp_data=None,
+            exp_encrypted=None,
         ),
         (VaultFileFormatError, "Invalid YAML syntax"),
         None, True
@@ -175,6 +177,7 @@ TESTCASES_VAULTFILE_LOAD = [
             vault_yaml="- secrets: {}\n",
             password=None,
             exp_data=None,
+            exp_encrypted=None,
         ),
         (VaultFileFormatError,
          "Validation failed on top-level element: .* is not of type 'object'"),
@@ -187,6 +190,7 @@ TESTCASES_VAULTFILE_LOAD = [
                        "  - foo\n",
             password=None,
             exp_data=None,
+            exp_encrypted=None,
         ),
         (VaultFileFormatError,
          "Validation failed on element 'secrets': .* is not of type 'object'"),
@@ -198,6 +202,7 @@ TESTCASES_VAULTFILE_LOAD = [
             vault_yaml="secrets: bla\n",
             password=None,
             exp_data=None,
+            exp_encrypted=None,
         ),
         (VaultFileFormatError,
          "Validation failed on element 'secrets': .* is not of type 'object'"),
@@ -213,6 +218,7 @@ TESTCASES_VAULTFILE_LOAD = [
             exp_data={
                 'secrets': {},
             },
+            exp_encrypted=False,
         ),
         None, None, True
     ),
@@ -230,6 +236,7 @@ TESTCASES_VAULTFILE_LOAD = [
                     },
                 },
             },
+            exp_encrypted=False,
         ),
         None, None, True
     ),
@@ -247,6 +254,7 @@ TESTCASES_VAULTFILE_LOAD = [
                     },
                 },
             },
+            exp_encrypted=True,
         ),
         None, None, True
     ),
@@ -257,7 +265,8 @@ TESTCASES_VAULTFILE_LOAD = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_VAULTFILE_LOAD)
 @simplified_test_function
-def test_VaultFile_load(testcase, vault_yaml, password, exp_data):
+def test_VaultFile_load(
+        testcase, vault_yaml, password, exp_data, exp_encrypted):
     """
     Test function for VaultFile._load_vault_file()
     """
@@ -277,7 +286,7 @@ def test_VaultFile_load(testcase, vault_yaml, password, exp_data):
             del vault
 
         # The code to be tested
-        act_data = _load_vault_file(
+        act_data, act_encrypted = _load_vault_file(
             filepath, password, use_keyring=False, use_prompting=False,
             verbose=False)
 
@@ -288,6 +297,7 @@ def test_VaultFile_load(testcase, vault_yaml, password, exp_data):
             format(testcase.exp_exc_types)
 
         assert act_data == exp_data
+        assert act_encrypted == exp_encrypted
 
 
 TESTCASES_VAULTFILE_GET_SECRETS = [

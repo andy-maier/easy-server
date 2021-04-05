@@ -147,7 +147,7 @@ class VaultFile(object):
           VaultFileFormatError: Invalid vault file format
         """
         self._filepath = os.path.abspath(filepath)
-        self._vault_obj = _load_vault_file(
+        self._vault_obj, self._encrypted = _load_vault_file(
             filepath, password, use_keyring, use_prompting, verbose)
 
         # The following attributes are for faster access
@@ -166,6 +166,15 @@ class VaultFile(object):
         list of string: Server nicknames in the vault file.
         """
         return list(self._secrets.keys())
+
+    def is_encrypted(self):
+        """
+        Return whether the vault file is encrypted.
+
+        Returns:
+          bool: Boolean indicating whether the vault file is encrypted.
+        """
+        return self._encrypted
 
     def get_secrets(self, nickname):
         """
@@ -215,7 +224,8 @@ class VaultFile(object):
 
 def _load_vault_file(filepath, password, use_keyring, use_prompting, verbose):
     """
-    Load the vault file and return its complete content.
+    Load the vault file and return its complete content and whether it is
+    encrypted.
 
     The format of the vault file is validated against a JSON schema.
 
@@ -240,7 +250,9 @@ def _load_vault_file(filepath, password, use_keyring, use_prompting, verbose):
         is displayed regardless of verbose mode.
 
     Returns:
-      dict: Python dict representing the vault file content.
+      tuple(dict, bool): Tuple of:
+      * dict: Python dict representing the vault file content.
+      * bool: Indicates wether the vault file is encrypted.
 
     Raises:
       VaultFileOpenError: Error with opening the vault file
@@ -248,17 +260,17 @@ def _load_vault_file(filepath, password, use_keyring, use_prompting, verbose):
       VaultFileFormatError: Invalid vault file format
     """
 
-    if password is None:
-        try:
-            encrypted = easy_vault.EasyVault(filepath).is_encrypted()
-        except easy_vault.EasyVaultFileError as exc:
-            new_exc = VaultFileOpenError(str(exc))
-            new_exc.__cause__ = None
-            raise new_exc  # VaultFileOpenError
-        if encrypted:
-            password = easy_vault.get_password(
-                filepath, use_keyring=use_keyring, use_prompting=use_prompting,
-                verbose=verbose)
+    try:
+        encrypted = easy_vault.EasyVault(filepath).is_encrypted()
+    except easy_vault.EasyVaultFileError as exc:
+        new_exc = VaultFileOpenError(str(exc))
+        new_exc.__cause__ = None
+        raise new_exc  # VaultFileOpenError
+
+    if password is None and encrypted:
+        password = easy_vault.get_password(
+            filepath, use_keyring=use_keyring, use_prompting=use_prompting,
+            verbose=verbose)
 
     vault = easy_vault.EasyVault(filepath, password)
     try:
@@ -297,4 +309,4 @@ def _load_vault_file(filepath, password, use_keyring, use_prompting, verbose):
         new_exc.__cause__ = None
         raise new_exc  # VaultFileFormatError
 
-    return vault_obj
+    return vault_obj, encrypted
