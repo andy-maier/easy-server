@@ -53,6 +53,8 @@ Released: not yet
 
 * Increased minimum version of easy-vault package to 0.7.0. (issue #40)
 
+* Increased development status to Beta. (issue #29)
+
 **Cleanup:**
 
 **Known issues:**
