@@ -15,6 +15,7 @@ Support for vault files.
 """
 
 from __future__ import absolute_import, print_function
+import os
 from copy import deepcopy
 import jsonschema
 import easy_vault
@@ -145,7 +146,7 @@ class VaultFile(object):
           VaultFileDecryptError: Error with decrypting the vault file
           VaultFileFormatError: Invalid vault file format
         """
-        self._filepath = filepath
+        self._filepath = os.path.abspath(filepath)
         self._vault_obj = _load_vault_file(
             filepath, password, use_keyring, use_prompting, verbose)
 
@@ -247,10 +248,17 @@ def _load_vault_file(filepath, password, use_keyring, use_prompting, verbose):
       VaultFileFormatError: Invalid vault file format
     """
 
-    if password is None and easy_vault.EasyVault(filepath).is_encrypted():
-        password = easy_vault.get_password(
-            filepath, use_keyring=use_keyring, use_prompting=use_prompting,
-            verbose=verbose)
+    if password is None:
+        try:
+            encrypted = easy_vault.EasyVault(filepath).is_encrypted()
+        except easy_vault.EasyVaultFileError as exc:
+            new_exc = VaultFileOpenError(str(exc))
+            new_exc.__cause__ = None
+            raise new_exc  # VaultFileOpenError
+        if encrypted:
+            password = easy_vault.get_password(
+                filepath, use_keyring=use_keyring, use_prompting=use_prompting,
+                verbose=verbose)
 
     vault = easy_vault.EasyVault(filepath, password)
     try:
