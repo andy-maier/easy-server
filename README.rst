@@ -74,5 +74,5 @@ The **easy-server** project is provided under the
 
 .. # Links:
 
-.. _`Documentation`: https://easy-server.readthedocs.io/en/stable/
-.. _`Change log`: https://easy-server.readthedocs.io/en/stable/changes.html
+.. _`Documentation`: https://easy-server.readthedocs.io/en/latest/
+.. _`Change log`: https://easy-server.readthedocs.io/en/latest/changes.html
