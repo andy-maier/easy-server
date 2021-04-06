@@ -20,7 +20,8 @@ import pytest
 from testfixtures import TempDirectory
 import six
 import easy_vault
-from easy_server import VaultFile, VaultFileFormatError, VaultFileOpenError
+from easy_server import VaultFile, VaultFileFormatError, VaultFileOpenError, \
+    VaultFileServerFormatError, VaultFileServerSchemaError
 # White box testing: We test an internal function
 from easy_server._vault_file import _load_vault_file
 
@@ -29,6 +30,29 @@ from ..utils.simplified_test_function import simplified_test_function
 
 TEST_VAULTFILE_FILEPATH = 'tests/testfiles/vault.yml'
 TEST_VAULTFILE_FILEPATH_ABS = os.path.abspath(TEST_VAULTFILE_FILEPATH)
+
+FOO_SERVER_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "FOO - JSON schema for validating server items in vault files",
+    "type": "object",
+    "required": [
+        "foo",
+    ],
+    "additionalProperties": False,
+    "properties": {
+        "foo": {
+            "type": "string",
+            "description": "The foo value",
+        },
+    },
+}
+
+INVALID_SERVER_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Invalid JSON schema for validating server items in vault files",
+    "type": "object_xxx",
+    "additionalProperties": False,
+}
 
 TESTCASES_VAULTFILE_INIT = [
 
@@ -57,6 +81,7 @@ TESTCASES_VAULTFILE_INIT = [
             init_kwargs=dict(),
             exp_attrs={
                 'filepath': TEST_VAULTFILE_FILEPATH_ABS,
+                'server_schema': None,
             },
         ),
         None, None, True
@@ -74,6 +99,7 @@ TESTCASES_VAULTFILE_INIT = [
             ),
             exp_attrs={
                 'filepath': TEST_VAULTFILE_FILEPATH_ABS,
+                'server_schema': None,
             },
         ),
         None, None, True
@@ -140,6 +166,8 @@ TESTCASES_VAULTFILE_LOAD = [
     # * kwargs: Keyword arguments for the test function:
     #   * vault_yaml: Content of vault file.
     #   * password: Password for encryption (and flag to be encrypted)
+    #   * server_schema: JSON schema for validating server items in vault file,
+    #     or None.
     #   * exp_data, exp_encrypted: Expected result of _load_vault_file()
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
@@ -151,6 +179,7 @@ TESTCASES_VAULTFILE_LOAD = [
         dict(
             vault_yaml="",
             password=None,
+            server_schema=None,
             exp_data=None,
             exp_encrypted=None,
         ),
@@ -165,6 +194,7 @@ TESTCASES_VAULTFILE_LOAD = [
                        "  - foo\n"
                        "  bar:\n",
             password=None,
+            server_schema=None,
             exp_data=None,
             exp_encrypted=None,
         ),
@@ -176,6 +206,7 @@ TESTCASES_VAULTFILE_LOAD = [
         dict(
             vault_yaml="- secrets: {}\n",
             password=None,
+            server_schema=None,
             exp_data=None,
             exp_encrypted=None,
         ),
@@ -189,6 +220,7 @@ TESTCASES_VAULTFILE_LOAD = [
             vault_yaml="secrets:\n"
                        "  - foo\n",
             password=None,
+            server_schema=None,
             exp_data=None,
             exp_encrypted=None,
         ),
@@ -201,6 +233,7 @@ TESTCASES_VAULTFILE_LOAD = [
         dict(
             vault_yaml="secrets: bla\n",
             password=None,
+            server_schema=None,
             exp_data=None,
             exp_encrypted=None,
         ),
@@ -209,12 +242,13 @@ TESTCASES_VAULTFILE_LOAD = [
         None, True
     ),
 
-    # Valid simple server files
+    # Valid simple vault files
     (
         "Valid file with no secrets, decrypted",
         dict(
             vault_yaml="secrets: {}\n",
             password=None,
+            server_schema=None,
             exp_data={
                 'secrets': {},
             },
@@ -229,6 +263,7 @@ TESTCASES_VAULTFILE_LOAD = [
                        "  srv1:\n"
                        "    foo: bar\n",
             password=None,
+            server_schema=None,
             exp_data={
                 'secrets': {
                     'srv1': {
@@ -247,6 +282,7 @@ TESTCASES_VAULTFILE_LOAD = [
                        "  srv1:\n"
                        "    foo: bar\n",
             password='abc',
+            server_schema=None,
             exp_data={
                 'secrets': {
                     'srv1': {
@@ -258,6 +294,107 @@ TESTCASES_VAULTFILE_LOAD = [
         ),
         None, None, True
     ),
+
+    # JSON schema validation of server items
+    (
+        "Valid file with no items but with FOO schema",
+        dict(
+            vault_yaml="secrets: {}\n",
+            password=None,
+            server_schema=FOO_SERVER_SCHEMA,
+            exp_data={
+                'secrets': {},
+            },
+            exp_encrypted=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Valid file with two items that satisfy FOO schema",
+        dict(
+            vault_yaml="secrets:\n"
+                       "  srv1:\n"
+                       "    foo: bar1\n"
+                       "  srv2:\n"
+                       "    foo: bar2\n",
+            password=None,
+            server_schema=FOO_SERVER_SCHEMA,
+            exp_data={
+                'secrets': {
+                    'srv1': {
+                        'foo': 'bar1',
+                    },
+                    'srv2': {
+                        'foo': 'bar2',
+                    },
+                },
+            },
+            exp_encrypted=False,
+        ),
+        None, None, True
+    ),
+    (
+        "Invalid file with one item that misses property required in FOO "
+        "schema",
+        dict(
+            vault_yaml="secrets:\n"
+                       "  srv1: {}\n",
+            password=None,
+            server_schema=FOO_SERVER_SCHEMA,
+            exp_data=None,
+            exp_encrypted=None,
+        ),
+        (VaultFileServerFormatError,
+         "Invalid format in server item for server srv1.*"
+         "Validation failed on top-level of server item.*"
+         "'foo' is a required property"),
+        None, True
+    ),
+    (
+        "Invalid file with one item that has incorrect type as per FOO schema",
+        dict(
+            vault_yaml="secrets:\n"
+                       "  srv1:\n"
+                       "    foo: 42\n",
+            password=None,
+            server_schema=FOO_SERVER_SCHEMA,
+            exp_data=None,
+            exp_encrypted=None,
+        ),
+        (VaultFileServerFormatError,
+         "Invalid format in server item for server srv1.*"
+         "Validation failed on element 'foo'.*"
+         "42 is not of type 'string'"),
+        None, True
+    ),
+    (
+        "File with one item and invalid JSON schema",
+        dict(
+            vault_yaml="secrets:\n"
+                       "  srv1:\n"
+                       "    foo: bar\n",
+            password=None,
+            server_schema=INVALID_SERVER_SCHEMA,
+            exp_data=None,
+            exp_encrypted=None,
+        ),
+        (VaultFileServerSchemaError,
+         "Invalid JSON schema for validating the server items"),
+        None, True
+    ),
+    (
+        "File with no items and invalid JSON schema (not recognized)",
+        dict(
+            vault_yaml="secrets: {}\n",
+            password=None,
+            server_schema=INVALID_SERVER_SCHEMA,
+            exp_data={
+                'secrets': {},
+            },
+            exp_encrypted=False,
+        ),
+        None, None, True
+    ),
 ]
 
 
@@ -266,7 +403,7 @@ TESTCASES_VAULTFILE_LOAD = [
     TESTCASES_VAULTFILE_LOAD)
 @simplified_test_function
 def test_VaultFile_load(
-        testcase, vault_yaml, password, exp_data, exp_encrypted):
+        testcase, vault_yaml, password, server_schema, exp_data, exp_encrypted):
     """
     Test function for VaultFile._load_vault_file()
     """
@@ -288,7 +425,7 @@ def test_VaultFile_load(
         # The code to be tested
         act_data, act_encrypted = _load_vault_file(
             filepath, password, use_keyring=False, use_prompting=False,
-            verbose=False)
+            verbose=False, server_schema=server_schema)
 
         # Ensure that exceptions raised in the remainder of this function
         # are not mistaken as expected exceptions

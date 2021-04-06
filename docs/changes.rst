@@ -34,6 +34,9 @@ Released: not yet
 
 **Enhancements:**
 
+* Added support for JSON schema-validation of user-defined portions of server
+  and group items in server file and of server items in vault file.
+
 **Cleanup:**
 
 **Known issues:**

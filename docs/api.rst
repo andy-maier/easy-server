@@ -78,6 +78,22 @@ Exception classes
     :members:
     :special-members: __str__
 
+.. autoclass:: easy_server.ServerFileUserDefinedFormatError
+    :members:
+    :special-members: __str__
+
+.. autoclass:: easy_server.ServerFileUserDefinedSchemaError
+    :members:
+    :special-members: __str__
+
+.. autoclass:: easy_server.ServerFileGroupUserDefinedFormatError
+    :members:
+    :special-members: __str__
+
+.. autoclass:: easy_server.ServerFileGroupUserDefinedSchemaError
+    :members:
+    :special-members: __str__
+
 .. autoclass:: easy_server.VaultFileException
     :members:
     :special-members: __str__
@@ -91,6 +107,14 @@ Exception classes
     :special-members: __str__
 
 .. autoclass:: easy_server.VaultFileFormatError
+    :members:
+    :special-members: __str__
+
+.. autoclass:: easy_server.VaultFileServerFormatError
+    :members:
+    :special-members: __str__
+
+.. autoclass:: easy_server.VaultFileServerSchemaError
     :members:
     :special-members: __str__
 

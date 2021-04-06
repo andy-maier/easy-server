@@ -22,7 +22,8 @@ import easy_vault
 
 
 __all__ = ['VaultFile', 'VaultFileException', 'VaultFileOpenError',
-           'VaultFileDecryptError', 'VaultFileFormatError']
+           'VaultFileDecryptError', 'VaultFileFormatError',
+           'VaultFileServerFormatError', 'VaultFileServerSchemaError']
 
 
 # JSON schema describing the structure of the vault files
@@ -90,6 +91,26 @@ class VaultFileFormatError(VaultFileException):
     pass
 
 
+class VaultFileServerFormatError(VaultFileException):
+    """
+    Exception indicating that the values of the server items in a vault file
+    do not match the JSON schema defined for them.
+
+    Derived from :exc:`VaultFileException`.
+    """
+    pass
+
+
+class VaultFileServerSchemaError(VaultFileException):
+    """
+    Exception indicating that the JSON schema for validating the values of the
+    server items in a vault file is not valid.
+
+    Derived from :exc:`VaultFileException`.
+    """
+    pass
+
+
 class VaultFile(object):
     """
     A vault file that specifies the sensitive portion of servers,
@@ -119,7 +140,7 @@ class VaultFile(object):
 
     def __init__(
             self, filepath, password=None, use_keyring=True, use_prompting=True,
-            verbose=False):
+            verbose=False, server_schema=None):
         """
         Parameters:
 
@@ -141,14 +162,25 @@ class VaultFile(object):
             Print additional messages. Note that the password prompt (if needed)
             is displayed regardless of verbose mode.
 
+          server_schema (:term:`JSON schema`):
+            JSON schema for validating the values of the server items when
+            loading the vault file.
+            `None` means no schema validation takes place for these items.
+
         Raises:
           VaultFileOpenError: Error with opening the vault file
           VaultFileDecryptError: Error with decrypting the vault file
           VaultFileFormatError: Invalid vault file format
+          VaultFileServerFormatError: Invalid format of server items in the
+            vault file
+          VaultFileServerSchemaError: Invalid JSON schema for validating the
+            server items in the vault file
         """
         self._filepath = os.path.abspath(filepath)
+        self._server_schema = server_schema
         self._vault_obj, self._encrypted = _load_vault_file(
-            filepath, password, use_keyring, use_prompting, verbose)
+            filepath, password, use_keyring, use_prompting, verbose,
+            server_schema)
 
         # The following attributes are for faster access
         self._secrets = self._vault_obj['secrets']
@@ -166,6 +198,14 @@ class VaultFile(object):
         list of string: Server nicknames in the vault file.
         """
         return list(self._secrets.keys())
+
+    @property
+    def server_schema(self):
+        """
+        :term:`JSON schema`: JSON schema for validating the values of the
+        server items, or `None`.
+        """
+        return self._server_schema
 
     def is_encrypted(self):
         """
@@ -222,7 +262,9 @@ class VaultFile(object):
         return deepcopy(secrets_dict)
 
 
-def _load_vault_file(filepath, password, use_keyring, use_prompting, verbose):
+def _load_vault_file(
+        filepath, password, use_keyring, use_prompting, verbose,
+        server_schema=None):
     """
     Load the vault file and return its complete content and whether it is
     encrypted.
@@ -249,6 +291,12 @@ def _load_vault_file(filepath, password, use_keyring, use_prompting, verbose):
         Print additional messages. Note that the password prompt (if needed)
         is displayed regardless of verbose mode.
 
+      server_schema (dict):
+        JSON schema for validating the values of the server items when
+        loading the vault file.
+        `None` means no schema validation takes place for the server items
+        in the vault file.
+
     Returns:
       tuple(dict, bool): Tuple of:
       * dict: Python dict representing the vault file content.
@@ -258,6 +306,10 @@ def _load_vault_file(filepath, password, use_keyring, use_prompting, verbose):
       VaultFileOpenError: Error with opening the vault file
       VaultFileDecryptError: Error with decrypting the vault file
       VaultFileFormatError: Invalid vault file format
+      VaultFileServerFormatError: Invalid format of server items in the
+        vault file
+      VaultFileServerSchemaError: Invalid JSON schema for validating the
+        server items in the vault file
     """
 
     try:
@@ -308,5 +360,32 @@ def _load_vault_file(filepath, password, use_keyring, use_prompting, verbose):
             format(fn=filepath, elem=elem_str, msg=exc.message))
         new_exc.__cause__ = None
         raise new_exc  # VaultFileFormatError
+
+    # Schema validation of server items
+    if server_schema:
+        for server_nick, server_item in vault_obj['secrets'].items():
+            try:
+                jsonschema.validate(server_item, server_schema)
+            except jsonschema.exceptions.SchemaError as exc:
+                new_exc = VaultFileServerSchemaError(
+                    "Invalid JSON schema for validating the server items in "
+                    "vault file {fn}: {exc}".
+                    format(fn=filepath, exc=exc))
+                new_exc.__cause__ = None
+                raise new_exc  # VaultFileServerSchemaError
+            except jsonschema.exceptions.ValidationError as exc:
+                if exc.absolute_path:
+                    elem_str = "element '{}'". \
+                        format('.'.join(str(e) for e in exc.absolute_path))
+                else:
+                    elem_str = "top-level of server item"
+                new_exc = VaultFileServerFormatError(
+                    "Invalid format in server item for server {srv} "
+                    "in vault file {fn}: "
+                    "Validation failed on {elem}: {exc}".
+                    format(srv=server_nick, fn=filepath, elem=elem_str,
+                           exc=exc))
+                new_exc.__cause__ = None
+                raise new_exc  # VaultFileServerFormatError
 
     return vault_obj, encrypted
