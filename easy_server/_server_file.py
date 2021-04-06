@@ -23,7 +23,11 @@ from ._server import Server
 from ._vault_file import VaultFile
 
 __all__ = ['ServerFile', 'ServerFileException',
-           'ServerFileOpenError', 'ServerFileFormatError']
+           'ServerFileOpenError', 'ServerFileFormatError',
+           'ServerFileUserDefinedFormatError',
+           'ServerFileUserDefinedSchemaError',
+           'ServerFileGroupUserDefinedFormatError',
+           'ServerFileGroupUserDefinedSchemaError']
 
 
 # JSON schema describing the structure of the server files
@@ -162,6 +166,48 @@ class ServerFileFormatError(ServerFileException):
     pass
 
 
+class ServerFileUserDefinedFormatError(ServerFileException):
+    """
+    Exception indicating that the values of the user-defined portion of server
+    items in a server file do not match the JSON schema defined for them.
+
+    Derived from :exc:`ServerFileException`.
+    """
+    pass
+
+
+class ServerFileUserDefinedSchemaError(ServerFileException):
+    """
+    Exception indicating that the JSON schema for validating the values of the
+    user-defined portion of server items in a server file is not a valid JSON
+    schema.
+
+    Derived from :exc:`ServerFileException`.
+    """
+    pass
+
+
+class ServerFileGroupUserDefinedFormatError(ServerFileException):
+    """
+    Exception indicating that the values of the user-defined portion of group
+    items in a server file do not match the JSON schema defined for them.
+
+    Derived from :exc:`ServerFileException`.
+    """
+    pass
+
+
+class ServerFileGroupUserDefinedSchemaError(ServerFileException):
+    """
+    Exception indicating that the JSON schema for validating the values of the
+    user-defined portion of group items in a server file is not a valid JSON
+    schema.
+
+    Derived from :exc:`ServerFileException`.
+    """
+    pass
+
+
 class ServerFile(object):
     """
     A server file that specifies the openly accessible portion of the servers
@@ -174,13 +220,18 @@ class ServerFile(object):
     the server file specifies a vault file, the vault file is also
     loaded at that point.
 
+    Optionally, the user-defined portions of the server and group items in
+    the server file, and the server items in the vault file can be validated
+    against user-provided JSON schema.
+
     For a description of the file formats, see sections
     :ref:`Server files` and :ref:`Vault files`.
     """
 
     def __init__(
             self, filepath, password=None, use_keyring=True, use_prompting=True,
-            verbose=False):
+            verbose=False, user_defined_schema=None,
+            group_user_defined_schema=None, vault_server_schema=None):
         """
         Parameters:
 
@@ -204,16 +255,47 @@ class ServerFile(object):
             Print additional messages. Note that the password prompt (if needed)
             is displayed regardless of verbose mode.
 
+          user_defined_schema (:term:`JSON schema`):
+            JSON schema for validating the values of the user-defined portion
+            of server items when loading the server file.
+            `None` means no schema validation takes place for these items.
+
+          group_user_defined_schema (:term:`JSON schema`):
+            JSON schema for validating the values of the user-defined portion
+            of group items when loading the server file.
+            `None` means no schema validation takes place for these items.
+
+          vault_server_schema (:term:`JSON schema`):
+            JSON schema for validating the values of the server items when
+            loading the vault file.
+            `None` means no schema validation takes place for these items.
+
         Raises:
           ServerFileOpenError: Error opening server file
-          ServerFileFormatError: Invalid server file
-            format
+          ServerFileFormatError: Invalid server file format
+          ServerFileUserDefinedFormatError: Invalid format of user-defined
+            portion of server items in the server file
+          ServerFileUserDefinedSchemaError: Invalid JSON schema for validating
+            user-defined portion of server items in the server file
+          ServerFileGroupUserDefinedFormatError: Invalid format of user-defined
+            portion of group items in the server file
+          ServerFileGroupUserDefinedSchemaError: Invalid JSON schema for
+            validating user-defined portion of group items in the server file
           VaultFileOpenError: Error with opening the vault file
           VaultFileDecryptError: Error with decrypting the vault file
           VaultFileFormatError: Invalid vault file format
+          VaultFileServerFormatError: Invalid format of server items in the
+            vault file
+          VaultFileServerSchemaError: Invalid JSON schema for validating server
+            items in the vault file
         """
         self._filepath = os.path.abspath(filepath)
-        self._data = _load_server_file(filepath)
+        self._user_defined_schema = user_defined_schema
+        self._group_user_defined_schema = group_user_defined_schema
+        self._vault_server_schema = vault_server_schema
+
+        self._data = _load_server_file(
+            filepath, user_defined_schema, group_user_defined_schema)
 
         self._vault_file = self._data['vault_file']
         if self._vault_file:
@@ -222,7 +304,8 @@ class ServerFile(object):
                     os.path.dirname(self._filepath), self._vault_file)
             self._vault = VaultFile(
                 self._vault_file, password=password, use_keyring=use_keyring,
-                use_prompting=use_prompting, verbose=verbose)
+                use_prompting=use_prompting, verbose=verbose,
+                server_schema=vault_server_schema)
         else:
             self._vault = None
 
@@ -234,8 +317,7 @@ class ServerFile(object):
     @property
     def filepath(self):
         """
-        :term:`unicode string`: Absolute path name of the
-        server file.
+        :term:`unicode string`: Absolute path name of the server file.
         """
         return self._filepath
 
@@ -249,6 +331,30 @@ class ServerFile(object):
         directory of the server file.
         """
         return self._vault_file
+
+    @property
+    def user_defined_schema(self):
+        """
+        :term:`JSON schema`: JSON schema for validating the values of the
+        user-defined portion of server items in the server file, or `None`.
+        """
+        return self._user_defined_schema
+
+    @property
+    def group_user_defined_schema(self):
+        """
+        :term:`JSON schema`: JSON schema for validating the values of the
+        user-defined portion of group items in the server file, or `None`.
+        """
+        return self._group_user_defined_schema
+
+    @property
+    def vault_server_schema(self):
+        """
+        :term:`JSON schema`: JSON schema for validating the values of the
+        server items in the vault file, or `None`.
+        """
+        return self._vault_server_schema
 
     def is_vault_file_encrypted(self):
         """
@@ -356,7 +462,8 @@ class ServerFile(object):
         return [self.get_server(nickname) for nickname in self._servers]
 
 
-def _load_server_file(filepath):
+def _load_server_file(
+        filepath, user_defined_schema=None, group_user_defined_schema=None):
     """
     Load the server file, validate its format and default some
     optional elements.
@@ -367,6 +474,14 @@ def _load_server_file(filepath):
     Raises:
       ServerFileOpenError: Error opening server file
       ServerFileFormatError: Invalid server file content
+      ServerFileUserDefinedFormatError: Invalid format of user-defined
+        portion of server items in the server file
+      ServerFileUserDefinedSchemaError: Invalid JSON schema for validating
+        user-defined portion of server items in the server file
+      ServerFileGroupUserDefinedFormatError: Invalid format of user-defined
+        portion of group items in the server file
+      ServerFileGroupUserDefinedSchemaError: Invalid JSON schema for
+        validating user-defined portion of group items in the server file
     """
 
     # Load the server file (YAML)
@@ -386,7 +501,7 @@ def _load_server_file(filepath):
         new_exc.__cause__ = None
         raise new_exc  # ServerFileFormatError
 
-    # Schema validation of file content
+    # Schema validation of server file content
     try:
         jsonschema.validate(data, SERVER_FILE_SCHEMA)
         # Raises jsonschema.exceptions.SchemaError if JSON schema is invalid
@@ -414,6 +529,76 @@ def _load_server_file(filepath):
 
     if 'vault_file' not in data:
         data['vault_file'] = None
+
+    # Schema validation of user-defined portion of server items
+    if user_defined_schema:
+        for server_nick, server_item in data['servers'].items():
+            user_defined = server_item.get('user_defined', None)
+            if user_defined is None:
+                new_exc = ServerFileUserDefinedFormatError(
+                    "Missing user_defined element for server {srv} "
+                    "in server file {fn}".
+                    format(srv=server_nick, fn=filepath))
+                new_exc.__cause__ = None
+                raise new_exc  # ServerFileUserDefinedFormatError
+            try:
+                jsonschema.validate(user_defined, user_defined_schema)
+            except jsonschema.exceptions.SchemaError as exc:
+                new_exc = ServerFileUserDefinedSchemaError(
+                    "Invalid JSON schema for validating user-defined portion "
+                    "of server items in server file: {exc}".
+                    format(exc=exc))
+                new_exc.__cause__ = None
+                raise new_exc  # ServerFileUserDefinedSchemaError
+            except jsonschema.exceptions.ValidationError as exc:
+                if exc.absolute_path:
+                    elem_str = "element '{}'". \
+                        format('.'.join(str(e) for e in exc.absolute_path))
+                else:
+                    elem_str = "top-level of user-defined item"
+                new_exc = ServerFileUserDefinedFormatError(
+                    "Invalid format in user-defined portion of item for "
+                    "server {srv} in server file {fn}: "
+                    "Validation failed on {elem}: {exc}".
+                    format(srv=server_nick, fn=filepath, elem=elem_str,
+                           exc=exc))
+                new_exc.__cause__ = None
+                raise new_exc  # ServerFileUserDefinedFormatError
+
+    # Schema validation of user-defined portion of group items
+    if group_user_defined_schema:
+        for group_nick, group_item in data['server_groups'].items():
+            user_defined = group_item.get('user_defined', None)
+            if user_defined is None:
+                new_exc = ServerFileGroupUserDefinedFormatError(
+                    "Missing user_defined element for group {grp} "
+                    "in server file {fn}".
+                    format(grp=group_nick, fn=filepath))
+                new_exc.__cause__ = None
+                raise new_exc  # ServerFileGroupUserDefinedFormatError
+            try:
+                jsonschema.validate(user_defined, group_user_defined_schema)
+            except jsonschema.exceptions.SchemaError as exc:
+                new_exc = ServerFileGroupUserDefinedSchemaError(
+                    "Invalid JSON schema for validating user-defined portion "
+                    "of group items in server file: {exc}".
+                    format(exc=exc))
+                new_exc.__cause__ = None
+                raise new_exc  # ServerFileGroupUserDefinedSchemaError
+            except jsonschema.exceptions.ValidationError as exc:
+                if exc.absolute_path:
+                    elem_str = "element '{}'". \
+                        format('.'.join(str(e) for e in exc.absolute_path))
+                else:
+                    elem_str = "top-level of user-defined item"
+                new_exc = ServerFileGroupUserDefinedFormatError(
+                    "Invalid format in user-defined portion of item for "
+                    "group {grp} in server file {fn}: "
+                    "Validation failed on {elem}: {exc}".
+                    format(grp=group_nick, fn=filepath, elem=elem_str,
+                           exc=exc))
+                new_exc.__cause__ = None
+                raise new_exc  # ServerFileGroupUserDefinedFormatError
 
     # Check dependencies in the file
 

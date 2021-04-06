@@ -36,6 +36,12 @@ Glossary
        :class:`py3:bytes` in Python 3). Unless otherwise
        indicated, byte strings in this project are always UTF-8 encoded.
 
+    JSON schema
+       a :class:`py3:dict` object that represents a JSON schema (i.e. as if it
+       had been loaded from a JSON schema file using ``json.load()``).
+       For details about how to define a JSON schema, see
+       https://json-schema.org/understanding-json-schema/.
+
 
 .. _`References`:
 

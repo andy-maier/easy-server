@@ -52,20 +52,19 @@ A *server file* contains the openly accessible portion of the servers and
 optionally references a :ref:`vault file <vault files>` that specifies the
 secret portion of the servers.
 
-The server file must be in YAML format and defines servers, server groups and
-a default server or group. The servers and server groups are identified using
-user-defined nicknames and the file stores some basic information about them.
+The server file must be in YAML syntax and must follow the rules
+described in this section.
+
+The server file defines servers, server groups and a default server or group.
+The servers and server groups are identified using user-defined nicknames and
+the server file stores some basic information about them.
 
 The vault file is optional and its path name is specified with a property in
 the server file. Corresponding server items in these two files have the same
-nicknames.
+nicknames. See :ref:`Vault files` for details.
 
-Here is an example server file. The format of the file has some predefined
-fixed data about the servers and groups, and additional user-defined data for
-servers and groups.
-
-Here is a complete working example of a server file that defines two servers
-and one server group:
+Here is an example server file that defines two servers and one server group,
+and additional user-defined properties named 'stuff':
 
 .. code-block:: yaml
 
@@ -127,6 +126,8 @@ properties:
 * ``access_via`` (string): Short reminder on the network/firewall/proxy/vpn
   used to access the server (optional, defaults to `None`).
 * ``user_defined`` (object): User-defined details of the server (optional).
+  Can be schema-validated via the ``user_defined_schema`` init parameter of
+  :class:`easy_server.ServerFile`.
 
 The value of the ``server_groups`` top-level property is an object that has one
 property for each server group that is defined. The property name is the group
@@ -136,6 +137,8 @@ nickname, and the property value is an object with the following properties:
 * ``members`` (list): List of server nicknames or other group nicknames that
   are the members of the group (required).
 * ``user_defined`` (object): User-defined details of the group (optional).
+  Can be schema-validated via the ``group_user_defined_schema`` init parameter
+  of :class:`easy_server.ServerFile`.
 
 The value of the ``default`` top-level property is a string that is the
 nickname of the default server or group.
@@ -159,7 +162,7 @@ The vault file must be an "easy-vault" file and can be encrypted and decrypted
 using the ``easy-vault`` command provided by the
 `easy-vault <https://easy-vault.readthedocs.io/en/latest/>`_ package.
 
-The "easy-vault" files must be in YAML syntax and must follow the YAML schema
+The "easy-vault" files must be in YAML syntax and must follow the rules
 described in this section.
 
 Here is a complete working example of a vault file that defines host, username
@@ -189,6 +192,10 @@ The server items are identified by nicknames (``myserver1`` and ``myserver2``
 in the example above) and can have an arbitrary user-defined set of properties
 (``host``, ``username`` and ``password`` in the example above). The properties
 may be of arbitrary types, i.e. you can build substructures as you see fit.
+
+The values of the server items can be schema-validated via the
+``vault_server_schema`` init parameter of :class:`easy_server.ServerFile`,
+or the ``server_schema`` init parameter of :class:`easy_server.VaultFile`.
 
 Here is another example that defines URL and API key for the servers (or rather
 for the services, in this case):
@@ -244,7 +251,115 @@ or in this example, the servers in a server group:
 
     try:
         esf = easy_server.ServerFile(server_file)
-    except easy_server.ServerFileException as exc:
+    except (easy_server.ServerFileException, easy_server.VaultFileException) as exc:
+        print("Error: {}".format(exc))
+        return 1
+
+    es_list = esf.list_servers(nickname)  # Works for server and group nicknames
+
+    for es in es_list:
+        nick = es.nickname
+
+        # The structure of the secrets in the vault file is user-defined.
+        # Here, we use the first example vault file.
+
+        host = es.secrets['host'],
+        username = es.secrets['username']
+        password = es.secrets['password']
+
+        print("Server {n}: host={h}, username={u}, password=********".
+              format(n=nick, h=host, u=username))
+
+        # A fictitious session class
+        session = MySession(host, username, password)
+        . . .
+
+
+.. _`Example usage with schema validation`:
+
+Example usage with schema validation
+------------------------------------
+
+The following code snippet is an extension of the previous example that shows
+how the user-defined items in a server file and the server items in a vault
+file are validated with JSON schema.
+
+Note that JSON schema validates the structure of complex objects and its use
+does not require that the input data that is being validated is in JSON syntax.
+In fact, in our case the input data is in YAML syntax, and what is validated is
+the complex object representing the YAML file after it has been parsed.
+
+For details about how to define a JSON schema, see
+https://json-schema.org/understanding-json-schema/.
+Note that the JSON schemas used in this project are represented using a Python
+``dict`` object that represents the JSON schema (i.e. as if it had been loaded
+from a JSON schema file using ``json.load()``). Due to the syntax similarities
+between JSON and literal dict specifications in Python, the JSON schema examples in
+that document can be specified directly in Python.
+
+The server file used in this example is again the one shown earlier. In the
+JSON schema, its user-defined property 'stuff' is defined as string-typed and
+optional, and no additional properties are allowed. In this example, the
+user-defined portions of the server items and group items are defined to be the
+same.
+
+The vault file used in this example is the one with the 'host', 'username' and
+'password' properties shown earlier. In the JSON schema, these properties are
+all defined as string-typed and required, and no additional properties are
+allowed.
+
+.. code-block:: python
+
+    import easy_server
+
+    # Some parameters that typically would be input to the program:
+    vault_file = 'examples/vault.yml'        # Path name of vault file
+    server_file = 'examples/server.yml'      # Path name of server file
+    nickname = 'mygroup1'                    # Nickname of server or group
+
+    # JSON schema applied to the value of the user_defined element of each
+    # server item in the server file:
+    user_defined_schema = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+            "stuff": { "type": "string" },
+        },
+        "required": [
+            # 'stuff' is optional
+        ],
+        "additionalProperties": False,
+    }
+
+    # JSON schema applied to the value of the user_defined element of each
+    # group item in the server file. In this example, the same schema as for
+    # the server items is used.
+    group_user_defined_schema = user_defined_schema
+
+    # JSON schema applied to the value of each server item in the vault file:
+    vault_server_schema = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+            "host": { "type": "string" },
+            "username": { "type": "string" },
+            "password": { "type": "string" },
+        },
+        "required": [
+            "host",
+            "username",
+            "password",
+        ],
+        "additionalProperties": False,
+    }
+
+    try:
+        esf = easy_server.ServerFile(
+            server_file,
+            user_defined_schema=user_defined_schema,
+            group_user_defined_schema=group_user_defined_schema,
+            vault_server_schema=vault_server_schema)
+    except (easy_server.ServerFileException, easy_server.VaultFileException) as exc:
         print("Error: {}".format(exc))
         return 1
 

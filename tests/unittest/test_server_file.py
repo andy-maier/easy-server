@@ -17,7 +17,10 @@ Test the _server_file.py module.
 from __future__ import absolute_import, print_function
 import os
 import pytest
-from easy_server import ServerFile, ServerFileFormatError, ServerFileOpenError
+from easy_server import ServerFile, ServerFileFormatError, \
+    ServerFileOpenError, ServerFileUserDefinedFormatError, \
+    ServerFileUserDefinedSchemaError, ServerFileGroupUserDefinedFormatError, \
+    ServerFileGroupUserDefinedSchemaError
 # White box testing: We test an internal function
 from easy_server._server_file import _load_server_file
 
@@ -34,6 +37,29 @@ TEST_VAULTFILE_FILEPATH_ABS = os.path.abspath(TEST_VAULTFILE_FILEPATH)
 TEST_SERVER_FILENAME = 'server.yml'
 TEST_VAULT_FILENAME = 'vault.yml'
 TEST_VAULT_PASSWORD = 'vault'
+
+FOO_USER_DEFINED_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "FOO - JSON schema for user-defined items in server files",
+    "type": "object",
+    "required": [
+        "foo",
+    ],
+    "additionalProperties": False,
+    "properties": {
+        "foo": {
+            "type": "string",
+            "description": "The foo value",
+        },
+    },
+}
+
+INVALID_USER_DEFINED_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Invalid JSON schema for user-defined items in server files",
+    "type": "object_xxx",
+    "additionalProperties": False,
+}
 
 TESTCASES_SF_INIT = [
 
@@ -58,6 +84,9 @@ TESTCASES_SF_INIT = [
             init_kwargs=dict(),
             exp_serverfile_attrs={
                 'filepath': TEST_SERVERFILE_FILEPATH_ABS,
+                'user_defined_schema': None,
+                'group_user_defined_schema': None,
+                'vault_server_schema': None,
             },
         ),
         None, None, True
@@ -71,6 +100,9 @@ TESTCASES_SF_INIT = [
             ),
             exp_serverfile_attrs={
                 'filepath': TEST_SERVERFILE_FILEPATH_ABS,
+                'user_defined_schema': None,
+                'group_user_defined_schema': None,
+                'vault_server_schema': None,
             },
         ),
         None, None, True
@@ -106,6 +138,9 @@ TESTCASES_SF_INIT = [
             exp_serverfile_attrs={
                 'filepath': TEST_SERVERFILE_FILEPATH_ABS,
                 'vault_file': TEST_VAULTFILE_FILEPATH_ABS,
+                'user_defined_schema': None,
+                'group_user_defined_schema': None,
+                'vault_server_schema': None,
             },
         ),
         None, None, True
@@ -155,6 +190,10 @@ TESTCASES_SF_LOAD = [
     #   * vault_filename: Filename of vault file to be created, or None.
     #   * vault_yaml: Content of vault file, or None.
     #   * vault_password: Password for encryption of vault file, or None.
+    #   * user_defined_schema: JSON schema for validating user-defined portion
+    #     of server items in server file, or None.
+    #   * group_user_defined_schema: JSON schema for validating user-defined
+    #     portion of group items in server file, or None.
     #   * exp_data: Expected result of _load_server_file()
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
@@ -169,6 +208,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -185,6 +226,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError, "Invalid YAML syntax"),
@@ -199,6 +242,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -213,6 +258,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -229,6 +276,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -243,6 +292,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -258,6 +309,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -274,6 +327,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -291,6 +346,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -309,6 +366,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -328,6 +387,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -346,6 +407,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -365,6 +428,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -385,6 +450,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -402,6 +469,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -424,6 +493,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -448,6 +519,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data=None,
         ),
         (ServerFileFormatError,
@@ -464,6 +537,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data={
                 'servers': {},
                 'server_groups': {},
@@ -486,6 +561,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data={
                 'servers': {
                     'srv1': {
@@ -520,6 +597,8 @@ TESTCASES_SF_LOAD = [
             vault_filename=None,
             vault_yaml=None,
             vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=None,
             exp_data={
                 'servers': {
                     'srv1': {
@@ -541,6 +620,367 @@ TESTCASES_SF_LOAD = [
         ),
         None, None, True
     ),
+
+    # JSON schema validation of user-defined portion of server items
+    (
+        "Valid file with no servers but with FOO schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=FOO_USER_DEFINED_SCHEMA,
+            group_user_defined_schema=None,
+            exp_data={
+                'servers': {},
+                'server_groups': {},
+                'default': None,
+                'vault_file': None,
+            },
+        ),
+        None, None, True
+    ),
+    (
+        "Valid file with two servers that satisfy FOO schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      foo: bar1\n"
+                        "  srv2:\n"
+                        "    description: server2\n"
+                        "    user_defined:\n"
+                        "      foo: bar2\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=FOO_USER_DEFINED_SCHEMA,
+            group_user_defined_schema=None,
+            exp_data={
+                'servers': {
+                    'srv1': {
+                        'description': 'server1',
+                        'user_defined': {
+                            'foo': 'bar1',
+                        },
+                    },
+                    'srv2': {
+                        'description': 'server2',
+                        'user_defined': {
+                            'foo': 'bar2',
+                        },
+                    },
+                },
+                'server_groups': {},
+                'default': None,
+                'vault_file': None,
+            },
+        ),
+        None, None, True
+    ),
+    (
+        "Valid file with one server that misses user_defined element and FOO "
+        "schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=FOO_USER_DEFINED_SCHEMA,
+            group_user_defined_schema=None,
+            exp_data=None,
+        ),
+        (ServerFileUserDefinedFormatError,
+         "Missing user_defined element for server srv1"),
+        None, True
+    ),
+    (
+        "Valid file with one server that misses property required in FOO "
+        "schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=FOO_USER_DEFINED_SCHEMA,
+            group_user_defined_schema=None,
+            exp_data=None,
+        ),
+        (ServerFileUserDefinedFormatError,
+         "Invalid format in user-defined portion of item for server srv1.*"
+         "Validation failed on top-level of user-defined item.*"
+         "'foo' is a required property"),
+        None, True
+    ),
+    (
+        "Valid file with one server that has incorrect type as per FOO schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      foo: 42\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=FOO_USER_DEFINED_SCHEMA,
+            group_user_defined_schema=None,
+            exp_data=None,
+        ),
+        (ServerFileUserDefinedFormatError,
+         "Invalid format in user-defined portion of item for server srv1.*"
+         "Validation failed on element 'foo'.*"
+         "42 is not of type 'string'"),
+        None, True
+    ),
+    (
+        "File with one server and invalid FOO schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "    user_defined:\n"
+                        "      foo: bar\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=INVALID_USER_DEFINED_SCHEMA,
+            group_user_defined_schema=None,
+            exp_data=None,
+        ),
+        (ServerFileUserDefinedSchemaError,
+         "Invalid JSON schema for validating user-defined portion of server "
+         "items in server file"),
+        None, True
+    ),
+    (
+        "File with no servers and invalid FOO schema (not recognized)",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=INVALID_USER_DEFINED_SCHEMA,
+            group_user_defined_schema=None,
+            exp_data={
+                'servers': {},
+                'server_groups': {},
+                'default': None,
+                'vault_file': None,
+            },
+        ),
+        None, None, True
+    ),
+
+    # JSON schema validation of user-defined portion of group items
+    (
+        "Valid file with no servers but with FOO schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=FOO_USER_DEFINED_SCHEMA,
+            exp_data={
+                'servers': {},
+                'server_groups': {},
+                'default': None,
+                'vault_file': None,
+            },
+        ),
+        None, None, True
+    ),
+    (
+        "Valid file with two groups that satisfy FOO schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    user_defined:\n"
+                        "      foo: bar1\n"
+                        "    members:\n"
+                        "      - srv1\n"
+                        "  grp2:\n"
+                        "    description: group2\n"
+                        "    user_defined:\n"
+                        "      foo: bar2\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=FOO_USER_DEFINED_SCHEMA,
+            exp_data={
+                'servers': {
+                    'srv1': {
+                        'description': 'server1',
+                    },
+                },
+                'server_groups': {
+                    'grp1': {
+                        'description': 'group1',
+                        'user_defined': {
+                            'foo': 'bar1',
+                        },
+                        'members': ['srv1'],
+                    },
+                    'grp2': {
+                        'description': 'group2',
+                        'user_defined': {
+                            'foo': 'bar2',
+                        },
+                        'members': ['srv1'],
+                    },
+                },
+                'default': None,
+                'vault_file': None,
+            },
+        ),
+        None, None, True
+    ),
+    (
+        "Valid file with one group that misses user_defined element and FOO "
+        "schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=FOO_USER_DEFINED_SCHEMA,
+            exp_data=None,
+        ),
+        (ServerFileGroupUserDefinedFormatError,
+         "Missing user_defined element for group grp1"),
+        None, True
+    ),
+    (
+        "Valid file with one group that misses property required in FOO "
+        "schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    user_defined: {}\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=FOO_USER_DEFINED_SCHEMA,
+            exp_data=None,
+        ),
+        (ServerFileGroupUserDefinedFormatError,
+         "Invalid format in user-defined portion of item for group grp1.*"
+         "Validation failed on top-level of user-defined item.*"
+         "'foo' is a required property"),
+        None, True
+    ),
+    (
+        "Valid file with one group that has incorrect type as per FOO schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    user_defined:\n"
+                        "      foo: 42\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=FOO_USER_DEFINED_SCHEMA,
+            exp_data=None,
+        ),
+        (ServerFileGroupUserDefinedFormatError,
+         "Invalid format in user-defined portion of item for group grp1.*"
+         "Validation failed on element 'foo'.*"
+         "42 is not of type 'string'"),
+        None, True
+    ),
+    (
+        "File with one server and invalid FOO schema",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers:\n"
+                        "  srv1:\n"
+                        "    description: server1\n"
+                        "server_groups:\n"
+                        "  grp1:\n"
+                        "    description: group1\n"
+                        "    user_defined:\n"
+                        "      foo: bar\n"
+                        "    members:\n"
+                        "      - srv1\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=INVALID_USER_DEFINED_SCHEMA,
+            exp_data=None,
+        ),
+        (ServerFileGroupUserDefinedSchemaError,
+         "Invalid JSON schema for validating user-defined portion of group "
+         "items in server file"),
+        None, True
+    ),
+    (
+        "File with no groups and invalid FOO schema (not recognized)",
+        dict(
+            server_filename=TEST_SERVER_FILENAME,
+            server_yaml="servers: {}\n",
+            vault_filename=None,
+            vault_yaml=None,
+            vault_password=None,
+            user_defined_schema=None,
+            group_user_defined_schema=INVALID_USER_DEFINED_SCHEMA,
+            exp_data={
+                'servers': {},
+                'server_groups': {},
+                'default': None,
+                'vault_file': None,
+            },
+        ),
+        None, None, True
+    ),
 ]
 
 
@@ -550,7 +990,8 @@ TESTCASES_SF_LOAD = [
 @simplified_test_function
 def test_ServerFile_load(
         testcase, server_filename, server_yaml, vault_filename, vault_yaml,
-        vault_password, exp_data):
+        vault_password, user_defined_schema, group_user_defined_schema,
+        exp_data):
     """
     Test function for ServerFile._load_server_file()
     """
@@ -560,7 +1001,8 @@ def test_ServerFile_load(
             vault_password) as server_filepath:
 
         # The code to be tested
-        act_data = _load_server_file(server_filepath)
+        act_data = _load_server_file(
+            server_filepath, user_defined_schema, group_user_defined_schema)
 
         # Ensure that exceptions raised in the remainder of this function
         # are not mistaken as expected exceptions
