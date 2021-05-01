@@ -39,6 +39,8 @@ Released: not yet
 
 **Cleanup:**
 
+* Docs: Removed unused 'vault_file' variable from example code.
+
 **Known issues:**
 
 * See `list of open issues`_.

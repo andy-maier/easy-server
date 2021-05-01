@@ -245,7 +245,6 @@ or in this example, the servers in a server group:
     import easy_server
 
     # Some parameters that typically would be input to the program:
-    vault_file = 'examples/vault.yml'        # Path name of vault file
     server_file = 'examples/server.yml'      # Path name of server file
     nickname = 'mygroup1'                    # Nickname of server or group
 
@@ -313,7 +312,6 @@ allowed.
     import easy_server
 
     # Some parameters that typically would be input to the program:
-    vault_file = 'examples/vault.yml'        # Path name of vault file
     server_file = 'examples/server.yml'      # Path name of server file
     nickname = 'mygroup1'                    # Nickname of server or group
 
