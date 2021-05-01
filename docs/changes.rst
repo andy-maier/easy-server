@@ -17,16 +17,12 @@ Change log
 ==========
 
 
-Version 0.8.0.dev1
-------------------
+Version 0.8.0
+-------------
 
-This version contains all fixes up to version 0.7.x.
+This version contains all fixes up to version 0.7.1.
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2021-05-01
 
 **Bug fixes:**
 
@@ -40,12 +36,6 @@ Released: not yet
 **Cleanup:**
 
 * Docs: Removed unused 'vault_file' variable from example code.
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/andy-maier/easy-server/issues
 
 
 Version 0.7.0
